@@ -8,10 +8,10 @@
 # -------------------------------------------------------------------
 # 1. Application Code (Preserve All App Classes, Enums & Members)
 # -------------------------------------------------------------------
--keep class com.magic.calcucator.** { *; }
--keepclassmembers class com.magic.calcucator.** { *; }
--keepclassmembernames class com.magic.calcucator.** { *; }
--dontwarn com.magic.calcucator.**
+-keep class com.magic.calculator.** { *; }
+-keepclassmembers class com.magic.calculator.** { *; }
+-keepclassmembernames class com.magic.calculator.** { *; }
+-dontwarn com.magic.calculator.**
 
 # -------------------------------------------------------------------
 # 2. Enums (Crucial: Prevent Enum Unboxing & Name Stripping for SharedPreferences)
@@ -121,8 +121,8 @@
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
--keep class com.magic.calcucator.core.WebAppInterface { *; }
--keepclassmembers class com.magic.calcucator.core.WebAppInterface { *; }
+-keep class com.magic.calculator.core.WebAppInterface { *; }
+-keepclassmembers class com.magic.calculator.core.WebAppInterface { *; }
 
 # -------------------------------------------------------------------
 # 8. ML Kit Text Recognition (Camera & OCR) & Image Cropper

@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.magic.calcucator"
+    namespace = "com.magic.calculator"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.magic.calcucator"
+        applicationId = "com.magic.calculator"
         minSdk = 24
         targetSdk = 37
         versionCode = 7

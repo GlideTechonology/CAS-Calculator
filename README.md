@@ -1,4 +1,4 @@
-# Calcucator 🧮✨
+# CAS Calculator 🧮✨
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Android](https://img.shields.io/badge/Platform-Android-green.svg?logo=android)](https://www.android.com)
@@ -94,8 +94,8 @@ Instant conversion across 10+ categories:
 ### Clone and Build
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/calcucator.git
-cd calcucator
+git clone https://github.com/<your-username>/calculator.git
+cd calculator
 
 # Build debug APK using Gradle Wrapper
 ./gradlew assembleDebug

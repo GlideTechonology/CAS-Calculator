@@ -2,7 +2,7 @@
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability or sensitive data issue in Calcucator, please do **NOT** open a public issue.
+If you discover a security vulnerability or sensitive data issue in CAS Calculator, please do **NOT** open a public issue.
 
 Instead, please report it privately by contacting the project maintainer via:
 - GitHub Security Advisories (Security tab > Report a vulnerability)
