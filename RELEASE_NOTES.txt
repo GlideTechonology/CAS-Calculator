@@ -1,6 +1,7 @@
 <en-US>
-What's New in v1.1.3? 🚀
+What's New in v1.1.4? 🚀
 
+  • 🌟 Open Source Release: Initial public open-source launch!
   • 📷 Math Vision (OCR): Scan printed or handwritten math formulas via camera or gallery.
   • ✍️ Draw to Solve: Draw formulas on screen with touch canvas.
   • 🧠 Advanced CAS Engine: Step-by-step Derivatives, Integrals, Limits, ODEs & Matrices.
@@ -12,8 +13,9 @@ Rate us 5 stars! ⭐
 </en-US>
 
 <tr-TR>
-v1.1.3 Yenilikleri 🚀
+v1.1.4 Yenilikleri 🚀
 
+  • 🌟 Açık Kaynak Sürümü: İlk halka açık resmi sürüm!
   • 📷 Math Vision (OCR): Kamera veya galeriden formül okuma.
   • ✍️ Çizerek Çöz: Ekrana parmağınızla formül çizme tuvali.
   • 🧠 Gelişmiş CAS Motoru: Türev, İntegral, Limit, Diferansiyel Denklem (ODE) ve Matris çözümleri.
