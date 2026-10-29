@@ -9,6 +9,27 @@ An advanced, modern, and open-source all-in-one Android calculator designed with
 
 ---
 
+## 📱 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><b>Scientific Calculator</b></td>
+      <td align="center"><b>Advanced CAS Engine</b></td>
+      <td align="center"><b>2D Graphing Calculator</b></td>
+      <td align="center"><b>Daily Utility Tools</b></td>
+    </tr>
+    <tr>
+      <td><img src="docs/screenshots/01_calculator_main.jpg" width="220" alt="Main Calculator" /></td>
+      <td><img src="docs/screenshots/02_cas_solver.jpg" width="220" alt="CAS Engine" /></td>
+      <td><img src="docs/screenshots/03_graphing_mode.jpg" width="220" alt="Graphing Mode" /></td>
+      <td><img src="docs/screenshots/04_daily_tools.jpg" width="220" alt="Daily Tools" /></td>
+    </tr>
+  </table>
+</div>
+
+---
+
 ## ✨ Features
 
 ### 📐 Standard & Scientific Calculator
