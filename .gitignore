@@ -1,0 +1,65 @@
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+app/build/
+.externalNativeBuild/
+.cxx/
+captures/
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Proguard / R8 mapping files
+app/build/outputs/mapping/
+
+# Android Studio / IntelliJ IDEA
+*.iml
+.idea/
+
+# Kotlin
+.kotlin/
+
+# Keystores & Signing
+*.jks
+*.keystore
+*.p12
+*.pem
+*.bks
+signing.properties
+keystore.properties
+
+# Google Services, Firebase & AdMob Secrets
+google-services.json
+*google-services*.json
+admob.properties
+secrets.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
