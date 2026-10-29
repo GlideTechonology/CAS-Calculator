@@ -14,7 +14,7 @@ To ensure clarity regarding intellectual property rights and to allow the projec
 By submitting a Pull Request, patch, or code contribution to this repository, you explicitly agree that:
 
 1. **Open Source Distribution:** Your contribution is licensed to the community under the terms of the **GNU General Public License v3.0 (GPL-3.0)**.
-2. **Commercial & Dual-License Grant:** You grant the author/maintainer (**[Adınız Soyadınız]** and future designated legal entities/companies) a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable license to use, reproduce, modify, display, sublicense, and distribute your contribution as part of any commercial, ad-supported, closed-source, or alternative-licensed distributions of CAS Calculator (including Google Play Store and other distribution platforms) without any restriction or accounting.
+2. **Commercial & Dual-License Grant:** You grant the author/maintainer (**GlideTechnology** and future designated legal entities/companies) a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable license to use, reproduce, modify, display, sublicense, and distribute your contribution as part of any commercial, ad-supported, closed-source, or alternative-licensed distributions of CAS Calculator (including Google Play Store and other distribution platforms) without any restriction or accounting.
 3. **Original Work:** You represent that you are the sole author of your contribution and have the legal right to submit it under these terms.
 
 > **Note for Contributors:** If you do not agree to these terms, please do not submit Pull Requests. You are still completely free to fork and modify the project under the standard terms of GPL-3.0.
