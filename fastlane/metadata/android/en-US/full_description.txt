@@ -1,0 +1,9 @@
+CAS Calculator is a modern, privacy-focused, and open-source scientific calculator for Android. Built with Kotlin and Jetpack Compose, it features a complete Computer Algebra System (CAS), real-time 2D graphing, Math Vision (OCR), and essential daily utilities.
+
+Key Features:
+• Computer Algebra System (CAS): Step-by-step symbolic math powered by Symja (Derivatives, Integrals, Limits, Taylor series, ODEs, Matrix operations, Equation solving).
+• 2D Graphing: Interactive Cartesian coordinate plots with zoom, pan, intercepts, and multi-function support.
+• Math Vision (OCR): Scan handwritten or printed mathematical equations directly via camera or gallery.
+• Draw to Solve: On-screen canvas to draw formulas with touch/stylus.
+• Daily Tools: Offline currency converter, unit converter, date calculator, base-N programmer calculator, ruler, and financial loan calculator.
+• Privacy & Security: No user tracking, no telemetry, and fully offline capable.
