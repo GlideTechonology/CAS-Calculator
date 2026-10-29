@@ -54,10 +54,6 @@ android {
 
 
 dependencies {
-    implementation("com.google.mediapipe:tasks-genai:0.10.35")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
-
     implementation("org.matheclipse:matheclipse-core:3.2.0")
 
     // Camera & OCR (Math Vision)
