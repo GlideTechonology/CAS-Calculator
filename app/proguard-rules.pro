@@ -125,14 +125,15 @@
 -keepclassmembers class com.magic.calculator.core.WebAppInterface { *; }
 
 # -------------------------------------------------------------------
-# 8. ML Kit Text Recognition (Camera & OCR) & Image Cropper
+# 8. Tesseract4Android (Offline OCR) & Image Cropper
 # -------------------------------------------------------------------
--keep class com.google.mlkit.** { *; }
--dontwarn com.google.mlkit.**
--keep class com.google.android.gms.vision.** { *; }
--keep class com.google.android.gms.internal.vision.** { *; }
--keep class com.google.android.gms.tasks.** { *; }
--dontwarn com.google.android.gms.**
+-keep class com.googlecode.tesseract.android.** { *; }
+-keep class cz.adaptech.tesseract4android.** { *; }
+-dontwarn com.googlecode.tesseract.android.**
+-dontwarn cz.adaptech.tesseract4android.**
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
 -keep class com.canhub.cropper.** { *; }
 -dontwarn com.canhub.cropper.**
 -keep class com.vanniktech.** { *; }

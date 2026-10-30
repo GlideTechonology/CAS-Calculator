@@ -33,10 +33,6 @@
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar" />
-        
-        <meta-data
-            android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="ocr" />
             
         <service
             android:name=".FloatingService"

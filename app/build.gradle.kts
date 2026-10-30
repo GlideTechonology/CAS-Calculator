@@ -105,8 +105,8 @@ android {
 dependencies {
     implementation("org.matheclipse:matheclipse-core:3.2.0")
 
-    // Camera & OCR (Math Vision)
-    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    // Camera & OCR (Math Vision) - 100% Open Source Tesseract OCR
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
     implementation("com.vanniktech:android-image-cropper:4.6.0")
 
     implementation(platform(libs.androidx.compose.bom))

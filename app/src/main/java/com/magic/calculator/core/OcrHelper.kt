@@ -7,9 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Base64
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.googlecode.tesseract.android.TessBaseAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,17 +15,26 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 object OcrHelper {
     fun recognizeText(context: Context, imageUri: Uri, aiOptIn: Int, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, imageUri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+        val bitmap = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(context.contentResolver, imageUri)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+            }
+        } catch (e: Exception) {
+            onError(e)
+            return
         }
         recognizeBitmap(context, bitmap, aiOptIn, onSuccess, onError)
     }
@@ -108,37 +115,75 @@ object OcrHelper {
                         onSuccess(cleaned)
                     }
                 } else {
-                    // API returned error; fallback to ML Kit
-                    withContext(Dispatchers.Main) {
-                        runLocalOcr(context, originalBitmap, onSuccess, onError)
-                    }
-                }
-            } catch (e: Exception) {
-                // On any network or translation exception, fallback to local ML Kit engine
-                withContext(Dispatchers.Main) {
+                    // API returned error; fallback to local Tesseract OCR
                     runLocalOcr(context, originalBitmap, onSuccess, onError)
                 }
+            } catch (e: Exception) {
+                // On any network or translation exception, fallback to local Tesseract OCR engine
+                runLocalOcr(context, originalBitmap, onSuccess, onError)
             }
         }
     }
 
     private fun runLocalOcr(context: Context, bitmap: Bitmap, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        try {
-            val image = InputImage.fromBitmap(bitmap, 0)
-            val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-            
-            recognizer.process(image)
-                .addOnSuccessListener { visionText ->
-                    var cleaned = visionText.text.replace("\n", " ").trim()
+        CoroutineScope(Dispatchers.IO).launch {
+            var tess: TessBaseAPI? = null
+            try {
+                // Ensure software bitmap config for native Leptonica/Tesseract compatibility
+                val safeBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && bitmap.config == Bitmap.Config.HARDWARE) {
+                    bitmap.copy(Bitmap.Config.ARGB_8888, false)
+                } else {
+                    bitmap
+                }
+
+                val dataPath = ensureTessData(context)
+                tess = TessBaseAPI()
+                if (!tess.init(dataPath, "eng")) {
+                    withContext(Dispatchers.Main) {
+                        onError(IllegalStateException("Tesseract initialization failed for path: $dataPath"))
+                    }
+                    return@launch
+                }
+
+                tess.setImage(safeBitmap)
+                val rawText = tess.utF8Text ?: ""
+                var cleaned = rawText.replace("\n", " ").trim()
+                while (cleaned.contains("  ")) {
                     cleaned = cleaned.replace("  ", " ")
+                }
+
+                withContext(Dispatchers.Main) {
                     onSuccess(cleaned)
                 }
-                .addOnFailureListener { e ->
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
                     onError(e)
                 }
-        } catch (e: Exception) {
-            onError(e)
+            } finally {
+                try {
+                    tess?.recycle()
+                } catch (_: Exception) {}
+            }
         }
+    }
+
+    private fun ensureTessData(context: Context): String {
+        val tessBaseDir = File(context.filesDir, "tesseract")
+        val tessDataDir = File(tessBaseDir, "tessdata")
+        if (!tessDataDir.exists()) {
+            tessDataDir.mkdirs()
+        }
+        val targetFile = File(tessDataDir, "eng.traineddata")
+
+        // Copy asset to internal storage if not already present or file is empty
+        if (!targetFile.exists() || targetFile.length() == 0L) {
+            context.assets.open("tessdata/eng.traineddata").use { input ->
+                FileOutputStream(targetFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+        return tessBaseDir.absolutePath
     }
 
     private fun encodeBitmapToBase64(bitmap: Bitmap): String {
