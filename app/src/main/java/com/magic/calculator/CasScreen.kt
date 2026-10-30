@@ -4,7 +4,6 @@ package com.magic.calculator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.util.Base64
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -735,14 +734,17 @@ fun CasScreen(
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <script>
-                MathJax = {
-                  loader: {load: ['input/asciimath', 'input/tex', 'output/chtml']},
-                  asciimath: { delimiters: [['`','`']] },
-                  tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+                window.MathJax = {
+                  tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+                  },
+                  svg: {
+                    fontCache: 'global'
+                  }
                 };
                 </script>
-                <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-                <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/startup.js"></script>
+                <script id="MathJax-script" async src="file:///android_asset/mathjax/tex-svg.js"></script>
                 <style>
                     :root {
                         --ai-color: $colorHex;
@@ -881,20 +883,22 @@ fun CasScreen(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val encodedHtml = Base64.encodeToString(htmlContent.toByteArray(), Base64.NO_PADDING)
-
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
                         WebView(ctx).apply {
                             settings.javaScriptEnabled = true
                             settings.domStorageEnabled = true
+                            settings.allowFileAccess = true
+                            settings.allowContentAccess = true
                             setBackgroundColor(0x00000000)
                             webViewClient = WebViewClient()
                         }
                     },
                     update = { webView ->
                         webView.settings.javaScriptEnabled = true
+                        webView.settings.allowFileAccess = true
+                        webView.settings.allowContentAccess = true
                         webView.addJavascriptInterface(
                             WebAppInterface(
                                 context,
@@ -913,7 +917,7 @@ fun CasScreen(
                             Toast.makeText(webView.context, Translator.tr("Çözüm Kopyalandı"), Toast.LENGTH_SHORT).show()
                             true
                         }
-                        webView.loadData(encodedHtml, "text/html", "base64")
+                        webView.loadDataWithBaseURL("file:///android_asset/", htmlContent, "text/html", "UTF-8", null)
                     }
                 )
             }
