@@ -125,6 +125,27 @@ cd calculator
 ./gradlew installDebug
 ```
 
+### Release Signing
+To sign release APKs or Android App Bundles (AAB), configure your keystore in `keystore.properties` (git-ignored):
+```bash
+cp keystore.properties.example keystore.properties
+```
+Edit `keystore.properties` with your keystore path, alias, and passwords:
+```properties
+storeFile=release.keystore
+storePassword=your_keystore_password
+keyAlias=your_key_alias
+keyPassword=your_key_password
+```
+Then build the release APK or Bundle:
+```bash
+./gradlew assembleRelease
+# or bundle release:
+./gradlew bundleRelease
+```
+> [!NOTE]
+> If `keystore.properties` is absent or the specified keystore file does not exist, release builds will automatically fallback to the debug signing key for local development.
+
 ---
 
 ## 🤝 Contributing
