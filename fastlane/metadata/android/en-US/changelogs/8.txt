@@ -1,0 +1,5 @@
+- Migrated OCR engine to 100% open-source Tesseract OCR.
+- Removed proprietary Google Play Services and ML Kit dependencies.
+- Bundled MathJax 3 locally for offline LaTeX math rendering.
+- Removed unused permissions and streamlined background services.
+- Enhanced stability and release build reproducibility.
