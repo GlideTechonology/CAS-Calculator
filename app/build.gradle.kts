@@ -81,6 +81,11 @@ android {
         compose = true
     }
 
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     packaging {
         resources {
             excludes += "graphml.xsd"
