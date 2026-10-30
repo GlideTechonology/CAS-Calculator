@@ -102,6 +102,10 @@ android {
 }
 
 
+configurations.configureEach {
+    exclude(group = "io.opencensus")
+}
+
 dependencies {
     implementation("org.matheclipse:matheclipse-core:3.2.0")
 
