@@ -21,6 +21,14 @@ import kotlin.math.abs
 
 val AccentOrange = Color(0xFFFF9500)
 
+val LocalAccentColor = androidx.compose.runtime.compositionLocalOf { AccentOrange }
+
+/** Returns white or black text color depending on the background luminance for optimal contrast. */
+fun Color.contrastTextColor(): Color {
+    val luminance = (0.299f * red + 0.587f * green + 0.114f * blue)
+    return if (luminance > 0.68f) Color.Black else Color.White
+}
+
 /** Common top app bar for utility screens (History, Unit Converter, Ruler). */
 @Composable
 fun ToolTopBar(

@@ -442,9 +442,19 @@ fun cleanCasResultForCopy(rawHtml: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CasScreen(
+    appSettings: AppSettings,
     textColor: Color,
     onBack: () -> Unit
 ) {
+    val accentColor = LocalAccentColor.current
+    val accentHex = String.format("#%06X", (0xFFFFFF and accentColor.toArgb()))
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isLight = appSettings.theme == AppTheme.LIGHT || (appSettings.theme in listOf(AppTheme.SYSTEM, AppTheme.MATERIAL_YOU) && !isSystemDark)
+    val isDark = !isLight
+
+    val latexColor = appSettings.keyTextColor?.let { Color(it) } ?: (if (isDark) Color.White else Color.Black)
+    val latexHex = String.format("#%06X", (0xFFFFFF and latexColor.toArgb()))
+
     var equation by remember { mutableStateOf("") }
     var aiResult by remember { mutableStateOf("") }
     var baseResult by remember { mutableStateOf(Translator.tr("Denklem veya ifade girin.")) }
@@ -507,8 +517,6 @@ fun CasScreen(
             solveCas(equation, aiOptIn == 1)
         }
     }
-
-    val isDark = textColor == Color.White
 
     if (showDrawingDialog) {
         DrawingCanvasDialog(
@@ -625,7 +633,7 @@ fun CasScreen(
             label = {
                 if (isOcrLoading) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = textColor)
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = accentColor)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(Translator.tr("Görsel Çözümleniyor..."))
                     }
@@ -664,11 +672,11 @@ fun CasScreen(
                 }
             },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AccentOrange,
+                focusedBorderColor = accentColor,
                 unfocusedBorderColor = textColor.copy(alpha = 0.45f),
-                focusedLabelColor = AccentOrange,
+                focusedLabelColor = accentColor,
                 unfocusedLabelColor = textColor.copy(alpha = 0.55f),
-                cursorColor = AccentOrange
+                cursorColor = accentColor
             ),
             textStyle = androidx.compose.ui.text.TextStyle(color = textColor, fontSize = 18.sp)
         )
@@ -705,7 +713,8 @@ fun CasScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val colorHex = if (isDark) "#FFFFFF" else "#000000"
+        val latexCssColor = latexHex
+        val dividerHex = if (isDark) "#FFFFFF" else "#000000"
         val stepBgHex = if (isDark) "rgba(255, 255, 255, 0.04)" else "rgba(0, 0, 0, 0.03)"
         val stepBorderHex = if (isDark) "rgba(255, 255, 255, 0.14)" else "rgba(0, 0, 0, 0.14)"
         val errBg = String.format("#%06X", (0xFFFFFF and MaterialTheme.colorScheme.errorContainer.toArgb()))
@@ -724,7 +733,7 @@ fun CasScreen(
 
         val previewLatex = formatInputForLatexPreview(equation)
         val inputPreview = if (previewLatex.isNotBlank()) {
-            "<b>${Translator.tr("Girdi Önizlemesi:")}</b><br/><div class=\"math-scroll\" style=\"font-size: 1.25em; text-align: center; margin: 8px 0;\">$$ $previewLatex $$</div><hr style=\"border: 0; border-top: 1px solid ${colorHex}30; margin: 14px 0;\"/>"
+            "<b>${Translator.tr("Girdi Önizlemesi:")}</b><br/><div class=\"math-scroll\" style=\"font-size: 1.25em; text-align: center; margin: 8px 0; color: $latexCssColor;\">$$ $previewLatex $$</div><hr style=\"border: 0; border-top: 1px solid ${dividerHex}30; margin: 14px 0;\"/>"
         } else ""
 
         val htmlContent = """
@@ -747,8 +756,8 @@ fun CasScreen(
                 <script id="MathJax-script" async src="file:///android_asset/mathjax/tex-svg.js"></script>
                 <style>
                     :root {
-                        --ai-color: $colorHex;
-                        --accent-color: #FF9500;
+                        --ai-color: $latexCssColor;
+                        --accent-color: $accentHex;
                         --error-bg: $errBg;
                         --error-color: $errOnBg;
                     }
@@ -788,6 +797,7 @@ fun CasScreen(
                         line-height: 1.65;
                         font-size: 0.95em;
                         overflow-x: auto;
+                        color: $latexCssColor;
                     }
                     .ai-loading {
                         text-align: center;
@@ -818,7 +828,7 @@ fun CasScreen(
                         padding: 0 !important;
                     }
                     body {
-                        color: $colorHex;
+                        color: $latexCssColor;
                         background-color: transparent;
                         font-family: sans-serif;
                         font-size: 16px;
@@ -833,8 +843,14 @@ fun CasScreen(
                         overflow-x: auto !important;
                         overflow-y: hidden !important;
                         padding-bottom: 4px;
+                        color: $latexCssColor !important;
+                    }
+                    mjx-container svg {
+                        color: $latexCssColor !important;
+                        fill: currentColor !important;
                     }
                     .math-scroll {
+                        color: $latexCssColor !important;
                         max-width: 100%;
                         overflow-x: auto;
                         overflow-y: hidden;
@@ -887,10 +903,10 @@ fun CasScreen(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
                         WebView(ctx).apply {
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.allowFileAccess = true
-                            settings.allowContentAccess = true
+                            this.settings.javaScriptEnabled = true
+                            this.settings.domStorageEnabled = true
+                            this.settings.allowFileAccess = true
+                            this.settings.allowContentAccess = true
                             setBackgroundColor(0x00000000)
                             webViewClient = WebViewClient()
                         }

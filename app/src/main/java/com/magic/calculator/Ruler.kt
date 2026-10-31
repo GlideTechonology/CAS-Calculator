@@ -45,6 +45,7 @@ import kotlin.math.floor
  */
 @Composable
 fun RulerScreen(settings: AppSettings, textColor: Color, onBack: () -> Unit) {
+    val accentColor = LocalAccentColor.current
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("CalcSettings", Context.MODE_PRIVATE) }
     val metrics = context.resources.displayMetrics
@@ -141,8 +142,8 @@ fun RulerScreen(settings: AppSettings, textColor: Color, onBack: () -> Unit) {
 
             // --- Measurement indicator line ---
             if (markerY >= 0f) {
-                drawLine(AccentOrange.copy(alpha = 0.25f), Offset(0f, 0f), Offset(0f, markerY), strokeWidth = 8.dp.toPx())
-                drawLine(AccentOrange, Offset(0f, markerY), Offset(w, markerY), strokeWidth = 2.dp.toPx())
+                drawLine(accentColor.copy(alpha = 0.25f), Offset(0f, 0f), Offset(0f, markerY), strokeWidth = 8.dp.toPx())
+                drawLine(accentColor, Offset(0f, markerY), Offset(w, markerY), strokeWidth = 2.dp.toPx())
             }
         }
 
@@ -164,7 +165,7 @@ fun RulerScreen(settings: AppSettings, textColor: Color, onBack: () -> Unit) {
                 if (markerY >= 0f) {
                     val cm = markerY / pxPerMm / 10f
                     val inch = markerY / pxPerInch
-                    Text(String.format(Locale.US, "%.1f cm", cm), color = AccentOrange, fontSize = 40.sp, fontWeight = FontWeight.Bold)
+                    Text(String.format(Locale.US, "%.1f cm", cm), color = accentColor, fontSize = 40.sp, fontWeight = FontWeight.Bold)
                     Text(String.format(Locale.US, "%.2f %s", inch, Translator.tr("inç")), color = textColor.copy(alpha = 0.7f), fontSize = 20.sp)
                 } else {
                     Text(
@@ -187,7 +188,7 @@ fun RulerScreen(settings: AppSettings, textColor: Color, onBack: () -> Unit) {
                     onValueChange = { calibration = it },
                     onValueChangeFinished = { prefs.edit().putFloat("rulerCalibration", calibration).apply() },
                     valueRange = 0.9f..1.1f,
-                    colors = SliderDefaults.colors(thumbColor = AccentOrange, activeTrackColor = AccentOrange)
+                    colors = SliderDefaults.colors(thumbColor = accentColor, activeTrackColor = accentColor)
                 )
                 Text(
                     Translator.tr("Not: Üreticiler bazen ekran ydpi değerini yanlış raporlar.\nEğer cetvel hatalıysa gerçek bir cetvel koyarak kaydırıcı ile çizgileri eşitleyin."),
@@ -199,7 +200,7 @@ fun RulerScreen(settings: AppSettings, textColor: Color, onBack: () -> Unit) {
                 TextButton(onClick = {
                     calibration = 1f
                     prefs.edit().putFloat("rulerCalibration", 1f).apply()
-                }) { Text(Translator.tr("Sıfırla"), color = AccentOrange) }
+                }) { Text(Translator.tr("Sıfırla"), color = accentColor) }
             }
         }
     }

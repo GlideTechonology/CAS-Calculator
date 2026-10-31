@@ -414,6 +414,7 @@ class FastCompiler(rawStr: String, private val useRadians: Boolean = true) {
 
 @Composable
 fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
+    val accentColor = LocalAccentColor.current
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = context.getSharedPreferences("graph_prefs", android.content.Context.MODE_PRIVATE)
 
@@ -479,7 +480,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                 // RAD / DEG Toggle
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = AccentOrange.copy(alpha = 0.15f),
+                    color = accentColor.copy(alpha = 0.15f),
                     modifier = Modifier
                         .padding(end = 8.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -490,7 +491,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                 ) {
                     Text(
                         text = if (useRadians) "RAD" else "DEG",
-                        color = AccentOrange,
+                        color = accentColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -507,7 +508,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                     Icon(
                         Icons.Filled.Analytics,
                         contentDescription = Translator.tr("Kök ve Ekstremum Analizi"),
-                        tint = if (showAnalysis) AccentOrange else textColor.copy(alpha = 0.4f)
+                        tint = if (showAnalysis) accentColor else textColor.copy(alpha = 0.4f)
                     )
                 }
             }
@@ -653,9 +654,9 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                     },
                     modifier = Modifier.padding(start = 20.dp)
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = null, tint = AccentOrange)
+                    Icon(Icons.Filled.Add, contentDescription = null, tint = accentColor)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(Translator.tr("Add Equation"), color = AccentOrange, fontWeight = FontWeight.SemiBold)
+                    Text(Translator.tr("Add Equation"), color = accentColor, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -1237,7 +1238,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                                 text = "${Translator.tr(sp.type.labelTr)} • ${sp.eqExpr}",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = AccentOrange
+                                color = accentColor
                             )
                             Text(
                                 text = String.format(Locale.US, "x = %.4f,  y = %.4f", sp.mathX, sp.mathY),
@@ -1289,8 +1290,8 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                         touchX = null
                         selectedSpecialPoint = null
                     },
-                    containerColor = AccentOrange.copy(alpha = 0.9f),
-                    contentColor = Color.White,
+                    containerColor = accentColor.copy(alpha = 0.9f),
+                    contentColor = accentColor.contrastTextColor(),
                     shape = CircleShape
                 ) {
                     Icon(Icons.Filled.CenterFocusStrong, contentDescription = "Reset View", modifier = Modifier.size(20.dp))
@@ -1307,7 +1308,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                 onDismissRequest = { colorPickerEqId = null },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Palette, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Filled.Palette, contentDescription = null, tint = accentColor, modifier = Modifier.size(22.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = Translator.tr("Grafik Rengi Seç"),
@@ -1386,7 +1387,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(Translator.tr("Benzersiz Yeni Renk Üret"), color = textColor, fontSize = 13.sp)
                         }
@@ -1394,7 +1395,7 @@ fun GraphingScreen(textColor: Color, onBack: () -> Unit) {
                 },
                 confirmButton = {
                     TextButton(onClick = { colorPickerEqId = null }) {
-                        Text(Translator.tr("Kapat"), color = AccentOrange, fontWeight = FontWeight.Bold)
+                        Text(Translator.tr("Kapat"), color = accentColor, fontWeight = FontWeight.Bold)
                     }
                 }
             )

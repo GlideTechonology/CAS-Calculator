@@ -63,6 +63,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -97,10 +100,53 @@ import kotlin.time.Duration.Companion.milliseconds
 
 enum class AppTheme(val displayName: String) { 
     SYSTEM("System Default"),
+    MATERIAL_YOU("Material You (Dynamic)"),
     LIGHT("Light Theme"), 
     DARK("Dark Theme"), 
     AMOLED("Pure Black (AMOLED)") 
 }
+
+val PresetPrimaryColors = listOf(
+    0xFFFF9500 to "Vivid Orange",
+    0xFF2196F3 to "Electric Blue",
+    0xFF10B981 to "Emerald Green",
+    0xFF8B5CF6 to "Royal Violet",
+    0xFFEC4899 to "Hot Pink",
+    0xFF06B6D4 to "Cyan Glow",
+    0xFFEF4444 to "Crimson Red",
+    0xFFF59E0B to "Amber Gold",
+    0xFF14B8A6 to "Teal",
+    0xFF6366F1 to "Indigo"
+)
+
+val PresetSecondaryColors = listOf(
+    0xFF4A4A4A to "Graphite",
+    0xFF374151 to "Slate",
+    0xFF1E293B to "Midnight",
+    0xFF312E81 to "Deep Purple",
+    0xFF064E3B to "Forest",
+    0xFF27272A to "Charcoal"
+)
+
+val PresetNumberColors = listOf(
+    0xFF333333 to "Standard Dark",
+    0xFF1F2937 to "Dark Slate",
+    0xFF121212 to "AMOLED Black",
+    0xFF3F3F46 to "Stone Gray",
+    0xFF172554 to "Navy Blue"
+)
+
+val PresetTextColors = listOf(
+    0xFFFFFFFF to "Pure White",
+    0xFFE0E0E0 to "Light Gray",
+    0xFF000000 to "Pure Black",
+    0xFFFFD700 to "Gold",
+    0xFF00E676 to "Neon Green",
+    0xFF00E5FF to "Cyan",
+    0xFFFF4081 to "Pink",
+    0xFFFF9100 to "Orange",
+    0xFFB388FF to "Lavender"
+)
 
 enum class NavBarMode(val displayName: String) {
     HIDE("Immersive (Hidden)"),
@@ -109,6 +155,11 @@ enum class NavBarMode(val displayName: String) {
 
 data class AppSettings(
     val theme: AppTheme = AppTheme.AMOLED,
+    val primaryColor: Long? = null,
+    val secondaryColor: Long? = null,
+    val numberKeyColor: Long? = null,
+    val displayTextColor: Long? = null,
+    val keyTextColor: Long? = null,
     val navBarMode: NavBarMode = NavBarMode.HIDE,
     val vibrationEnabled: Boolean = true,
     val vibrationStrength: Float = 0.5f,
@@ -319,6 +370,11 @@ fun MainApp(intentAction: String? = null) {
                 } catch (_: Throwable) {
                     AppTheme.SYSTEM
                 },
+                primaryColor = if (prefs.contains("primaryColor")) prefs.getLong("primaryColor", 0L) else null,
+                secondaryColor = if (prefs.contains("secondaryColor")) prefs.getLong("secondaryColor", 0L) else null,
+                numberKeyColor = if (prefs.contains("numberKeyColor")) prefs.getLong("numberKeyColor", 0L) else null,
+                displayTextColor = if (prefs.contains("displayTextColor")) prefs.getLong("displayTextColor", 0L) else null,
+                keyTextColor = if (prefs.contains("keyTextColor")) prefs.getLong("keyTextColor", 0L) else null,
                 navBarMode = try {
                     NavBarMode.valueOf(prefs.getString("navBarMode", NavBarMode.HIDE.name) ?: NavBarMode.HIDE.name)
                 } catch (_: Throwable) {
@@ -356,6 +412,11 @@ fun MainApp(intentAction: String? = null) {
         settings = newSettings
         prefs.edit().apply {
             putString("theme", newSettings.theme.name)
+            newSettings.primaryColor?.let { putLong("primaryColor", it) } ?: remove("primaryColor")
+            newSettings.secondaryColor?.let { putLong("secondaryColor", it) } ?: remove("secondaryColor")
+            newSettings.numberKeyColor?.let { putLong("numberKeyColor", it) } ?: remove("numberKeyColor")
+            newSettings.displayTextColor?.let { putLong("displayTextColor", it) } ?: remove("displayTextColor")
+            newSettings.keyTextColor?.let { putLong("keyTextColor", it) } ?: remove("keyTextColor")
             putString("navBarMode", newSettings.navBarMode.name)
             putBoolean("vibrationEnabled", newSettings.vibrationEnabled)
             putFloat("vibrationStrength", newSettings.vibrationStrength)
@@ -398,121 +459,396 @@ fun MainApp(intentAction: String? = null) {
     var initialExpression by remember { mutableStateOf("") }
 
     val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val resolvedTheme = if (settings.theme == AppTheme.SYSTEM) {
-        if (isSystemDark) AppTheme.AMOLED else AppTheme.LIGHT
-    } else settings.theme
+    val isMaterialYou = settings.theme == AppTheme.MATERIAL_YOU && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val resolvedTheme = when (settings.theme) {
+        AppTheme.SYSTEM -> if (isSystemDark) AppTheme.AMOLED else AppTheme.LIGHT
+        AppTheme.MATERIAL_YOU -> if (isSystemDark) AppTheme.DARK else AppTheme.LIGHT
+        else -> settings.theme
+    }
 
-    val bgColor = when (resolvedTheme) {
-        AppTheme.LIGHT -> Color(0xFFF0F0F0)
-        AppTheme.DARK -> Color(0xFF1C1C1C)
+    val dynamicColorScheme = if (isMaterialYou) {
+        if (isSystemDark) androidx.compose.material3.dynamicDarkColorScheme(context)
+        else androidx.compose.material3.dynamicLightColorScheme(context)
+    } else null
+
+    val bgColor = when {
+        dynamicColorScheme != null -> if (isSystemDark) dynamicColorScheme.background else dynamicColorScheme.surface
+        resolvedTheme == AppTheme.LIGHT -> Color(0xFFF0F0F0)
+        resolvedTheme == AppTheme.DARK -> Color(0xFF1C1C1C)
         else -> Color.Black
     }
     
-    val textColor = when (resolvedTheme) {
-        AppTheme.LIGHT -> Color.Black
-        else -> Color.White
-    }
+    val textColor = settings.displayTextColor?.let { Color(it) }
+        ?: when {
+            dynamicColorScheme != null -> if (isSystemDark) dynamicColorScheme.onBackground else dynamicColorScheme.onSurface
+            resolvedTheme == AppTheme.LIGHT -> Color.Black
+            else -> Color.White
+        }
+
+    val effectivePrimary = settings.primaryColor?.let { Color(it) }
+        ?: dynamicColorScheme?.primary
+        ?: AccentOrange
 
     val baseModifier = Modifier.fillMaxSize().let {
         if (settings.navBarMode == NavBarMode.INSETS) it.navigationBarsPadding() else it
     }
 
-    Surface(color = bgColor, modifier = baseModifier) {
-        AnimatedContent(
-            targetState = currentScreen,
-            transitionSpec = {
-                if (targetState != Screen.CALCULATOR) {
-                    slideInHorizontally { width -> width } + fadeIn() togetherWith slideOutHorizontally { width -> -width } + fadeOut()
-                } else {
-                    slideInHorizontally { width -> -width } + fadeIn() togetherWith slideOutHorizontally { width -> width } + fadeOut()
-                }
-            },
-            label = "screen_transition"
-        ) { screen ->
-            when (screen) {
-                Screen.SETTINGS -> {
-                    SettingsScreen(
-                        settings = settings,
-                        textColor = textColor,
-                        onSettingsChange = { saveSettings(it) },
-                        onBack = { currentScreen = Screen.CALCULATOR }
-                    )
-                }
-                Screen.HISTORY -> {
-                    HistoryScreen(
-                        entries = historyEntries,
-                        textColor = textColor,
-                        onBack = { currentScreen = Screen.CALCULATOR },
-                        onUse = { exp -> 
-                            initialExpression = exp
-                            currentScreen = Screen.CALCULATOR
-                        },
-                        onDelete = { entry ->
-                            historyEntries = historyEntries.filter { it != entry }
-                            historyStore.save(historyEntries)
-                        },
-                        onClearAll = {
-                            historyEntries = emptyList()
-                            historyStore.save(historyEntries)
-                        }
-                    )
-                }
-                Screen.CONVERTER -> {
-                    UnitConverterScreen(
-                        textColor = textColor,
-                        onBack = { currentScreen = Screen.CALCULATOR }
-                    )
-                }
-                Screen.RULER -> {
-                    RulerScreen(
-                        settings = settings,
-                        textColor = textColor,
-                        onBack = { currentScreen = Screen.CALCULATOR }
-                    )
-                }
-                Screen.DAILY -> {
-                    DailyToolsScreen(
-                        textColor = textColor,
-                        initialToolName = initialToolName,
-                        onBack = { currentScreen = Screen.CALCULATOR; initialToolName = null }
-                    )
-                }
-                Screen.GRAPHING -> {
-                    GraphingScreen(
-                        textColor = textColor,
-                        onBack = { currentScreen = Screen.CALCULATOR }
-                    )
-                }
-                Screen.CAS -> {
-                    CasScreen(
-                        textColor = textColor,
-                        onBack = { currentScreen = Screen.CALCULATOR }
-                    )
-                }
-                Screen.CALCULATOR -> {
-                    CalculatorScreen(
-                        settings = settings,
-                        textColor = textColor,
-                        initialExpression = initialExpression,
-                        onClearInitialExpression = { initialExpression = "" },
-                        onOpenSettings = { currentScreen = Screen.SETTINGS },
-                        onOpenHistory = { currentScreen = Screen.HISTORY },
-                        onOpenConverter = { currentScreen = Screen.CONVERTER },
-                        onOpenRuler = { currentScreen = Screen.RULER },
-                        onOpenDaily = { currentScreen = Screen.DAILY },
-                        onOpenGraphing = { currentScreen = Screen.GRAPHING },
-                        onOpenCas = { currentScreen = Screen.CAS },
-                        onSaveHistory = { expr, res ->
-                            val entry = HistoryEntry(expr, res, System.currentTimeMillis())
-                            historyEntries = listOf(entry) + historyEntries
-                            historyStore.save(historyEntries)
-                        },
-                        modifier = Modifier.fillMaxSize().padding(top = 32.dp)
-                    )
+    val appBody: @Composable () -> Unit = {
+        Surface(color = bgColor, modifier = baseModifier) {
+            AnimatedContent(
+                targetState = currentScreen,
+                transitionSpec = {
+                    if (targetState != Screen.CALCULATOR) {
+                        slideInHorizontally { width -> width } + fadeIn() togetherWith slideOutHorizontally { width -> -width } + fadeOut()
+                    } else {
+                        slideInHorizontally { width -> -width } + fadeIn() togetherWith slideOutHorizontally { width -> width } + fadeOut()
+                    }
+                },
+                label = "screen_transition"
+            ) { screen ->
+                when (screen) {
+                    Screen.SETTINGS -> {
+                        SettingsScreen(
+                            settings = settings,
+                            textColor = textColor,
+                            onSettingsChange = { saveSettings(it) },
+                            onBack = { currentScreen = Screen.CALCULATOR }
+                        )
+                    }
+                    Screen.HISTORY -> {
+                        HistoryScreen(
+                            entries = historyEntries,
+                            textColor = textColor,
+                            onBack = { currentScreen = Screen.CALCULATOR },
+                            onUse = { exp -> 
+                                initialExpression = exp
+                                currentScreen = Screen.CALCULATOR
+                            },
+                            onDelete = { entry ->
+                                historyEntries = historyEntries.filter { it != entry }
+                                historyStore.save(historyEntries)
+                            },
+                            onClearAll = {
+                                historyEntries = emptyList()
+                                historyStore.save(historyEntries)
+                            }
+                        )
+                    }
+                    Screen.CONVERTER -> {
+                        UnitConverterScreen(
+                            textColor = textColor,
+                            onBack = { currentScreen = Screen.CALCULATOR }
+                        )
+                    }
+                    Screen.RULER -> {
+                        RulerScreen(
+                            settings = settings,
+                            textColor = textColor,
+                            onBack = { currentScreen = Screen.CALCULATOR }
+                        )
+                    }
+                    Screen.DAILY -> {
+                        DailyToolsScreen(
+                            textColor = textColor,
+                            initialToolName = initialToolName,
+                            onBack = { currentScreen = Screen.CALCULATOR; initialToolName = null }
+                        )
+                    }
+                    Screen.GRAPHING -> {
+                        GraphingScreen(
+                            textColor = textColor,
+                            onBack = { currentScreen = Screen.CALCULATOR }
+                        )
+                    }
+                    Screen.CAS -> {
+                        CasScreen(
+                            appSettings = settings,
+                            textColor = textColor,
+                            onBack = { currentScreen = Screen.CALCULATOR }
+                        )
+                    }
+                    Screen.CALCULATOR -> {
+                        CalculatorScreen(
+                            settings = settings,
+                            textColor = textColor,
+                            initialExpression = initialExpression,
+                            onClearInitialExpression = { initialExpression = "" },
+                            onOpenSettings = { currentScreen = Screen.SETTINGS },
+                            onOpenHistory = { currentScreen = Screen.HISTORY },
+                            onOpenConverter = { currentScreen = Screen.CONVERTER },
+                            onOpenRuler = { currentScreen = Screen.RULER },
+                            onOpenDaily = { currentScreen = Screen.DAILY },
+                            onOpenGraphing = { currentScreen = Screen.GRAPHING },
+                            onOpenCas = { currentScreen = Screen.CAS },
+                            onSaveHistory = { expr, res ->
+                                val entry = HistoryEntry(expr, res, System.currentTimeMillis())
+                                historyEntries = listOf(entry) + historyEntries
+                                historyStore.save(historyEntries)
+                            },
+                            modifier = Modifier.fillMaxSize().padding(top = 32.dp)
+                        )
+                    }
                 }
             }
         }
     }
+
+    val isLight = resolvedTheme == AppTheme.LIGHT
+    val baseScheme = if (isLight) lightColorScheme() else darkColorScheme()
+    val appColorScheme = (dynamicColorScheme ?: baseScheme).let { scheme ->
+        val customPrim = settings.primaryColor?.let { Color(it) }
+        if (customPrim != null) {
+            scheme.copy(
+                primary = customPrim,
+                primaryContainer = customPrim.copy(alpha = 0.25f),
+                onPrimaryContainer = customPrim
+            )
+        } else if (dynamicColorScheme == null) {
+            scheme.copy(
+                primary = AccentOrange,
+                primaryContainer = AccentOrange.copy(alpha = 0.25f),
+                onPrimaryContainer = AccentOrange
+            )
+        } else {
+            scheme
+        }
+    }.copy(
+        background = bgColor,
+        surface = bgColor,
+        onBackground = textColor,
+        onSurface = textColor
+    )
+
+    CompositionLocalProvider(LocalAccentColor provides effectivePrimary) {
+        MaterialTheme(colorScheme = appColorScheme) {
+            appBody()
+        }
+    }
+}
+
+enum class ColorPickerTarget {
+    PRIMARY,
+    SECONDARY,
+    NUMBER_KEYS,
+    DISPLAY_TEXT,
+    KEY_TEXT
+}
+
+@Composable
+fun CustomColorPickerDialog(
+    title: String,
+    initialColor: Color,
+    textColor: Color,
+    onDismiss: () -> Unit,
+    onColorSelected: (Long) -> Unit
+) {
+    val hsv = remember(initialColor) {
+        val arr = FloatArray(3)
+        val colorInt = android.graphics.Color.argb(
+            255,
+            (initialColor.red * 255).toInt().coerceIn(0, 255),
+            (initialColor.green * 255).toInt().coerceIn(0, 255),
+            (initialColor.blue * 255).toInt().coerceIn(0, 255)
+        )
+        android.graphics.Color.colorToHSV(colorInt, arr)
+        arr
+    }
+
+    var hue by remember { mutableFloatStateOf(hsv[0]) }
+    var saturation by remember { mutableFloatStateOf(hsv[1].coerceIn(0.01f, 1f)) }
+    var value by remember { mutableFloatStateOf(hsv[2].coerceIn(0.01f, 1f)) }
+
+    val currentColorInt = remember(hue, saturation, value) {
+        android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, value))
+    }
+    val currentColor = remember(currentColorInt) { Color(currentColorInt) }
+    var hexInput by remember(currentColorInt) {
+        mutableStateOf(String.format("%06X", 0xFFFFFF and currentColorInt))
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Palette, contentDescription = null, tint = currentColor, modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Live Preview Card
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(currentColor)
+                        .border(1.dp, textColor.copy(alpha = 0.2f), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "#${hexInput.uppercase()}",
+                        color = currentColor.contrastTextColor(),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // HEX Input
+                OutlinedTextField(
+                    value = hexInput,
+                    onValueChange = { newHex ->
+                        val filtered = newHex.filter { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }.take(6)
+                        hexInput = filtered
+                        if (filtered.length == 6) {
+                            try {
+                                val parsedInt = (filtered.toLong(16) or 0xFF000000L).toInt()
+                                val newHsv = FloatArray(3)
+                                android.graphics.Color.colorToHSV(parsedInt, newHsv)
+                                hue = newHsv[0]
+                                saturation = newHsv[1]
+                                value = newHsv[2]
+                            } catch (_: Exception) {}
+                        }
+                    },
+                    label = { Text(Translator.tr("HEX Color Code")) },
+                    prefix = { Text("#") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Hue Slider
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(Translator.tr("Hue"), fontSize = 12.sp, color = textColor.copy(alpha = 0.7f))
+                        Text("${hue.toInt()}°", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textColor)
+                    }
+                    val rainbowGradient = remember {
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                Color(0xFFFF0000)
+                            )
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(rainbowGradient)
+                    )
+                    Slider(
+                        value = hue,
+                        onValueChange = { hue = it },
+                        valueRange = 0f..360f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // Saturation Slider
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(Translator.tr("Saturation"), fontSize = 12.sp, color = textColor.copy(alpha = 0.7f))
+                        Text("${(saturation * 100).toInt()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textColor)
+                    }
+                    val satGradient = remember(hue, value) {
+                        val baseHueColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 1f, value)))
+                        val grayColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0f, value)))
+                        Brush.horizontalGradient(listOf(grayColor, baseHueColor))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(satGradient)
+                    )
+                    Slider(
+                        value = saturation,
+                        onValueChange = { saturation = it },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // Brightness / Value Slider
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(Translator.tr("Brightness"), fontSize = 12.sp, color = textColor.copy(alpha = 0.7f))
+                        Text("${(value * 100).toInt()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = textColor)
+                    }
+                    val valGradient = remember(hue, saturation) {
+                        val fullColor = Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, 1f)))
+                        Brush.horizontalGradient(listOf(Color.Black, fullColor))
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(valGradient)
+                    )
+                    Slider(
+                        value = value,
+                        onValueChange = { value = it },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // Quick Palette Swatches
+                Text(Translator.tr("Quick Swatches"), fontSize = 12.sp, color = textColor.copy(alpha = 0.7f))
+                val quickColors = listOf(
+                    0xFFF44336L, 0xFFE91E63L, 0xFF9C27B0L, 0xFF673AB7L, 0xFF3F51B5L, 0xFF2196F3L,
+                    0xFF00BCD4L, 0xFF009688L, 0xFF4CAF50L, 0xFF8BC34AL, 0xFFFFEB3BL, 0xFFFF9800L,
+                    0xFFFF5722L, 0xFF795548L, 0xFF607D8BL, 0xFF212121L, 0xFFFFFFFFL, 0xFF000000L
+                )
+                quickColors.chunked(6).forEach { rowColors ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        rowColors.forEach { qColorLong ->
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(qColorLong))
+                                    .border(1.dp, textColor.copy(alpha = 0.25f), CircleShape)
+                                    .clickable {
+                                        val newHsv = FloatArray(3)
+                                        android.graphics.Color.colorToHSV((qColorLong or 0xFF000000L).toInt(), newHsv)
+                                        hue = newHsv[0]
+                                        saturation = newHsv[1]
+                                        value = newHsv[2]
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val finalColorLong = (currentColorInt.toLong() and 0xFFFFFFFFL)
+                    onColorSelected(finalColorLong)
+                }
+            ) {
+                Text(Translator.tr("Kaydet"))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(Translator.tr("İptal"))
+            }
+        }
+    )
 }
 
 @Composable
@@ -524,6 +860,40 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    var activeColorPickerTarget by remember { mutableStateOf<ColorPickerTarget?>(null) }
+
+    activeColorPickerTarget?.let { target ->
+        val title = when (target) {
+            ColorPickerTarget.PRIMARY -> Translator.tr("Primary Accent Color")
+            ColorPickerTarget.SECONDARY -> Translator.tr("Secondary Function Keys")
+            ColorPickerTarget.NUMBER_KEYS -> Translator.tr("Number Keys Color")
+            ColorPickerTarget.DISPLAY_TEXT -> Translator.tr("Display & Icons Color")
+            ColorPickerTarget.KEY_TEXT -> Translator.tr("Keypad Text & Symbols")
+        }
+        val initialColor = when (target) {
+            ColorPickerTarget.PRIMARY -> settings.primaryColor?.let { Color(it) } ?: AccentOrange
+            ColorPickerTarget.SECONDARY -> settings.secondaryColor?.let { Color(it) } ?: Color(0xFF4A4A4A)
+            ColorPickerTarget.NUMBER_KEYS -> settings.numberKeyColor?.let { Color(it) } ?: Color(0xFF333333)
+            ColorPickerTarget.DISPLAY_TEXT -> settings.displayTextColor?.let { Color(it) } ?: textColor
+            ColorPickerTarget.KEY_TEXT -> settings.keyTextColor?.let { Color(it) } ?: Color.White
+        }
+        CustomColorPickerDialog(
+            title = title,
+            initialColor = initialColor,
+            textColor = textColor,
+            onDismiss = { activeColorPickerTarget = null },
+            onColorSelected = { pickedColorLong ->
+                when (target) {
+                    ColorPickerTarget.PRIMARY -> onSettingsChange(settings.copy(primaryColor = pickedColorLong))
+                    ColorPickerTarget.SECONDARY -> onSettingsChange(settings.copy(secondaryColor = pickedColorLong))
+                    ColorPickerTarget.NUMBER_KEYS -> onSettingsChange(settings.copy(numberKeyColor = pickedColorLong))
+                    ColorPickerTarget.DISPLAY_TEXT -> onSettingsChange(settings.copy(displayTextColor = pickedColorLong))
+                    ColorPickerTarget.KEY_TEXT -> onSettingsChange(settings.copy(keyTextColor = pickedColorLong))
+                }
+                activeColorPickerTarget = null
+            }
+        )
+    }
     
     Column(modifier = Modifier.fillMaxSize().padding(16.dp).padding(top = 32.dp).verticalScroll(scrollState)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -556,7 +926,417 @@ fun SettingsScreen(
                     colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(Translator.tr(theme.displayName), fontSize = 16.sp, color = textColor)
+                val extraHint = if (theme == AppTheme.MATERIAL_YOU && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) " (Android 12+)" else ""
+                Text(Translator.tr(theme.displayName) + extraHint, fontSize = 16.sp, color = textColor)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(color = textColor.copy(alpha = 0.2f))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Custom Colors Section
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.ColorLens, contentDescription = null, tint = textColor, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(Translator.tr("Custom Colors"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textColor, modifier = Modifier.weight(1f))
+            if (settings.primaryColor != null || settings.secondaryColor != null || settings.numberKeyColor != null || settings.displayTextColor != null || settings.keyTextColor != null) {
+                TextButton(
+                    onClick = {
+                        onSettingsChange(settings.copy(primaryColor = null, secondaryColor = null, numberKeyColor = null, displayTextColor = null, keyTextColor = null))
+                    }
+                ) {
+                    Text(Translator.tr("Reset Colors to Default"), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Primary Accent Color
+        Text(Translator.tr("Primary Accent Color"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
+        val isCustomPrimary = settings.primaryColor != null && settings.primaryColor !in PresetPrimaryColors.map { it.first }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                val isSelected = settings.primaryColor == null
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(AccentOrange)
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(primaryColor = null)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            items(PresetPrimaryColors) { (colorLong, _) ->
+                val isSelected = settings.primaryColor == colorLong
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorLong))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(primaryColor = colorLong)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(colorLong).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            if (isCustomPrimary && settings.primaryColor != null) {
+                item {
+                    val customVal = settings.primaryColor!!
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(customVal))
+                            .border(3.dp, textColor, CircleShape)
+                            .clickable { activeColorPickerTarget = ColorPickerTarget.PRIMARY },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(customVal).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                    Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                    Color(0xFFFF0000)
+                                )
+                            )
+                        )
+                        .border(if (isCustomPrimary) 2.dp else 1.dp, textColor.copy(alpha = 0.4f), CircleShape)
+                        .clickable { activeColorPickerTarget = ColorPickerTarget.PRIMARY },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Palette, contentDescription = Translator.tr("Pick Any Color"), tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Secondary / Function Keys
+        Text(Translator.tr("Secondary Function Keys"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
+        val isCustomSecondary = settings.secondaryColor != null && settings.secondaryColor !in PresetSecondaryColors.map { it.first }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                val isSelected = settings.secondaryColor == null
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF4A4A4A))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(secondaryColor = null)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            items(PresetSecondaryColors) { (colorLong, _) ->
+                val isSelected = settings.secondaryColor == colorLong
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorLong))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(secondaryColor = colorLong)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            if (isCustomSecondary && settings.secondaryColor != null) {
+                item {
+                    val customVal = settings.secondaryColor!!
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(customVal))
+                            .border(3.dp, textColor, CircleShape)
+                            .clickable { activeColorPickerTarget = ColorPickerTarget.SECONDARY },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(customVal).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                    Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                    Color(0xFFFF0000)
+                                )
+                            )
+                        )
+                        .border(if (isCustomSecondary) 2.dp else 1.dp, textColor.copy(alpha = 0.4f), CircleShape)
+                        .clickable { activeColorPickerTarget = ColorPickerTarget.SECONDARY },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Palette, contentDescription = Translator.tr("Pick Any Color"), tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Number Keys
+        Text(Translator.tr("Number Keys Color"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
+        val isCustomNumber = settings.numberKeyColor != null && settings.numberKeyColor !in PresetNumberColors.map { it.first }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                val isSelected = settings.numberKeyColor == null
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF333333))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(numberKeyColor = null)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            items(PresetNumberColors) { (colorLong, _) ->
+                val isSelected = settings.numberKeyColor == colorLong
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorLong))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(numberKeyColor = colorLong)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            if (isCustomNumber && settings.numberKeyColor != null) {
+                item {
+                    val customVal = settings.numberKeyColor!!
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(customVal))
+                            .border(3.dp, textColor, CircleShape)
+                            .clickable { activeColorPickerTarget = ColorPickerTarget.NUMBER_KEYS },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(customVal).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                    Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                    Color(0xFFFF0000)
+                                )
+                            )
+                        )
+                        .border(if (isCustomNumber) 2.dp else 1.dp, textColor.copy(alpha = 0.4f), CircleShape)
+                        .clickable { activeColorPickerTarget = ColorPickerTarget.NUMBER_KEYS },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Palette, contentDescription = Translator.tr("Pick Any Color"), tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Display & Icons Color
+        Text(Translator.tr("Display & Icons Color"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
+        val isCustomDisplayText = settings.displayTextColor != null && settings.displayTextColor !in PresetTextColors.map { it.first }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                val isSelected = settings.displayTextColor == null
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(textColor)
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(displayTextColor = null)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = textColor.contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            items(PresetTextColors) { (colorLong, _) ->
+                val isSelected = settings.displayTextColor == colorLong
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorLong))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(displayTextColor = colorLong)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(colorLong).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            if (isCustomDisplayText && settings.displayTextColor != null) {
+                item {
+                    val customVal = settings.displayTextColor!!
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(customVal))
+                            .border(3.dp, textColor, CircleShape)
+                            .clickable { activeColorPickerTarget = ColorPickerTarget.DISPLAY_TEXT },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(customVal).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                    Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                    Color(0xFFFF0000)
+                                )
+                            )
+                        )
+                        .border(if (isCustomDisplayText) 2.dp else 1.dp, textColor.copy(alpha = 0.4f), CircleShape)
+                        .clickable { activeColorPickerTarget = ColorPickerTarget.DISPLAY_TEXT },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Palette, contentDescription = Translator.tr("Pick Any Color"), tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Keypad Text & Symbols
+        Text(Translator.tr("Keypad Text & Symbols"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor.copy(alpha = 0.8f))
+        Spacer(modifier = Modifier.height(8.dp))
+        val isCustomKeyText = settings.keyTextColor != null && settings.keyTextColor !in PresetTextColors.map { it.first }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                val isSelected = settings.keyTextColor == null
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF666666))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(keyTextColor = null)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            items(PresetTextColors) { (colorLong, _) ->
+                val isSelected = settings.keyTextColor == colorLong
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(colorLong))
+                        .border(if (isSelected) 3.dp else 1.dp, if (isSelected) textColor else Color.Transparent, CircleShape)
+                        .clickable { onSettingsChange(settings.copy(keyTextColor = colorLong)) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(colorLong).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            if (isCustomKeyText && settings.keyTextColor != null) {
+                item {
+                    val customVal = settings.keyTextColor!!
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(customVal))
+                            .border(3.dp, textColor, CircleShape)
+                            .clickable { activeColorPickerTarget = ColorPickerTarget.KEY_TEXT },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = Color(customVal).contrastTextColor(), modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                                    Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                                    Color(0xFFFF0000)
+                                )
+                            )
+                        )
+                        .border(if (isCustomKeyText) 2.dp else 1.dp, textColor.copy(alpha = 0.4f), CircleShape)
+                        .clickable { activeColorPickerTarget = ColorPickerTarget.KEY_TEXT },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Palette, contentDescription = Translator.tr("Pick Any Color"), tint = Color.White, modifier = Modifier.size(20.dp))
+                }
             }
         }
 
@@ -763,7 +1543,7 @@ fun SettingsScreen(
                         val state = if (it) android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED else android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
                         pm.setComponentEnabledSetting(comp, state, android.content.pm.PackageManager.DONT_KILL_APP)
                     },
-                    colors = SwitchDefaults.colors(checkedThumbColor = AccentOrange, checkedTrackColor = AccentOrange.copy(alpha = 0.5f))
+                    colors = SwitchDefaults.colors(checkedThumbColor = LocalAccentColor.current, checkedTrackColor = LocalAccentColor.current.copy(alpha = 0.5f))
                 )
             }
         }
@@ -968,6 +1748,16 @@ fun CalculatorScreen(
 
     val context = LocalContext.current
     val view = LocalView.current
+    val effectivePrimary = LocalAccentColor.current
+    val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isMaterialYou = settings.theme == AppTheme.MATERIAL_YOU && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val dynamicColorScheme = if (isMaterialYou) {
+        if (isSystemDark) androidx.compose.material3.dynamicDarkColorScheme(context)
+        else androidx.compose.material3.dynamicLightColorScheme(context)
+    } else null
+    val effectiveSecondary = settings.secondaryColor?.let { Color(it) }
+    val effectiveNumber = settings.numberKeyColor?.let { Color(it) }
+    val customKeyTextColor = settings.keyTextColor?.let { Color(it) }
     val androidClipboard = remember { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 
     var dropTrigger by remember { mutableIntStateOf(0) }
@@ -1262,7 +2052,7 @@ fun CalculatorScreen(
                     text = calculatedResult,
                     fontSize = animatedResultFont.sp,
                     fontWeight = FontWeight.Medium,
-                    color = textColor.copy(alpha = 0.7f),
+                    color = if (dynamicColorScheme != null && settings.displayTextColor == null) dynamicColorScheme.onSurfaceVariant else textColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1453,7 +2243,11 @@ fun CalculatorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(6.dp))
-                            .background(if (isSelected) AccentOrange.copy(alpha = 0.16f) else Color.Transparent)
+                            .background(
+                                if (isSelected) {
+                                    if (dynamicColorScheme != null) dynamicColorScheme.primaryContainer.copy(alpha = 0.5f) else effectivePrimary.copy(alpha = 0.16f)
+                                } else Color.Transparent
+                            )
                             .clickable { onAction(baseLabel) }
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
@@ -1462,14 +2256,14 @@ fun CalculatorScreen(
                                 .width(3.dp)
                                 .height(14.dp)
                                 .clip(RoundedCornerShape(2.dp))
-                                .background(if (isSelected) AccentOrange else Color.Transparent)
+                                .background(if (isSelected) effectivePrimary else Color.Transparent)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = baseLabel,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) AccentOrange else textColor.copy(alpha = 0.6f),
+                            color = if (isSelected) effectivePrimary else if (dynamicColorScheme != null && settings.displayTextColor == null) dynamicColorScheme.onSurfaceVariant else textColor.copy(alpha = 0.6f),
                             modifier = Modifier.width(34.dp)
                         )
                         Text(
@@ -1507,12 +2301,20 @@ fun CalculatorScreen(
             modeLabels.forEachIndexed { index, label ->
                 val isSelected = pagerState.targetPage == index
                 val tabBgColor by animateColorAsState(
-                    targetValue = if (isSelected) AccentOrange.copy(alpha = 0.2f) else textColor.copy(alpha = 0.06f),
+                    targetValue = if (isSelected) {
+                        if (dynamicColorScheme != null) dynamicColorScheme.primaryContainer else effectivePrimary.copy(alpha = 0.2f)
+                    } else {
+                        if (dynamicColorScheme != null) dynamicColorScheme.surfaceVariant.copy(alpha = 0.35f) else textColor.copy(alpha = 0.06f)
+                    },
                     animationSpec = tween(220),
                     label = "tabBg"
                 )
                 val tabTextColor by animateColorAsState(
-                    targetValue = if (isSelected) AccentOrange else textColor.copy(alpha = 0.55f),
+                    targetValue = if (isSelected) {
+                        if (dynamicColorScheme != null) dynamicColorScheme.onPrimaryContainer else effectivePrimary
+                    } else {
+                        if (dynamicColorScheme != null && settings.displayTextColor == null) dynamicColorScheme.onSurfaceVariant else textColor.copy(alpha = 0.55f)
+                    },
                     animationSpec = tween(220),
                     label = "tabText"
                 )
@@ -1615,6 +2417,11 @@ fun CalculatorScreen(
                                     isActive = (btn == currentBase),
                                     enabled = enabled,
                                     isCompact = isProgPage,
+                                    dynamicColorScheme = dynamicColorScheme,
+                                    customPrimary = settings.primaryColor?.let { Color(it) },
+                                    customSecondary = effectiveSecondary,
+                                    customNumberKey = effectiveNumber,
+                                    customKeyTextColor = customKeyTextColor,
                                     modifier = btnModifier,
                                     onClick = { onAction(btn) }
                                 )
@@ -1666,33 +2473,95 @@ fun CalculatorButton(
     isActive: Boolean = false,
     enabled: Boolean = true,
     isCompact: Boolean = false,
+    dynamicColorScheme: ColorScheme? = null,
+    customPrimary: Color? = null,
+    customSecondary: Color? = null,
+    customNumberKey: Color? = null,
+    customKeyTextColor: Color? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val isSystemDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val resolvedTheme = if (currentTheme == AppTheme.SYSTEM) {
-        if (isSystemDark) AppTheme.AMOLED else AppTheme.LIGHT
-    } else currentTheme
+    val resolvedTheme = when (currentTheme) {
+        AppTheme.SYSTEM -> if (isSystemDark) AppTheme.AMOLED else AppTheme.LIGHT
+        AppTheme.MATERIAL_YOU -> if (isSystemDark) AppTheme.DARK else AppTheme.LIGHT
+        else -> currentTheme
+    }
     val isLight = resolvedTheme == AppTheme.LIGHT
     val isOperator = symbol in setOf("=", "+", "-", "*", "÷", "%", "^", "!")
-    val isBitwiseOrHex = symbol in setOf("AND", "OR", "XOR", "NOT", "<<", ">>", "A", "B", "C", "D", "E", "F")
+    val isBitwise = symbol in setOf("AND", "OR", "XOR", "NOT", "<<", ">>")
+    val isHexLetter = symbol in setOf("A", "B", "C", "D", "E", "F")
+    val isScientific = symbol in setOf("sin", "cos", "tan", "cot", "π", "e", "x²", "x³", "√", "∛", "ln", "log", "(", ")")
+    val isClearOrBack = symbol == "AC" || symbol == "⌫"
+    val isEquals = symbol == "="
 
-    // In Light theme (#F0F0F0 background), keys must contrast distinctly
-    val backgroundColor = when {
-        isActive -> Color(0xFFFF9500)
-        symbol == "AC" || symbol == "⌫" -> if (isLight) Color(0xFFCFCFD4) else Color(0xFFA5A5A5)
-        isOperator -> Color(0xFFFF9500)
-        symbol in setOf("sin", "cos", "tan", "cot", "π", "e", "x²", "x³", "√", "∛", "ln", "log", "(", ")") || isBitwiseOrHex ->
-            if (isLight) Color(0xFFE1E1E6) else Color(0xFF4A4A4A)
-        else -> if (isLight) Color.White else Color(0xFF333333)
+    val (backgroundColor, defaultTextColor) = when {
+        // Active programmer mode base indicator
+        isActive -> {
+            val bg = customPrimary ?: dynamicColorScheme?.primary ?: AccentOrange
+            val fg = if (customPrimary != null) bg.contrastTextColor() else (dynamicColorScheme?.onPrimary ?: Color.White)
+            bg to fg
+        }
+        // Equals button (=)
+        isEquals -> {
+            val bg = customPrimary ?: dynamicColorScheme?.primary ?: AccentOrange
+            val fg = if (customPrimary != null) bg.contrastTextColor() else (dynamicColorScheme?.onPrimary ?: Color.White)
+            bg to fg
+        }
+        // Operators (+, -, *, ÷, %, ^, !)
+        isOperator -> {
+            if (customPrimary != null) {
+                customPrimary to customPrimary.contrastTextColor()
+            } else if (dynamicColorScheme != null) {
+                dynamicColorScheme.primaryContainer to dynamicColorScheme.onPrimaryContainer
+            } else {
+                AccentOrange to Color.White
+            }
+        }
+        // Clear / Backspace (AC, ⌫)
+        isClearOrBack -> {
+            if (customSecondary != null) {
+                customSecondary to customSecondary.contrastTextColor()
+            } else if (dynamicColorScheme != null) {
+                dynamicColorScheme.secondaryContainer to dynamicColorScheme.onSecondaryContainer
+            } else {
+                (if (isLight) Color(0xFFCFCFD4) else Color(0xFFA5A5A5)) to Color.Black
+            }
+        }
+        // Scientific & Bitwise
+        isScientific || isBitwise -> {
+            if (customSecondary != null) {
+                customSecondary to customSecondary.contrastTextColor()
+            } else if (dynamicColorScheme != null) {
+                dynamicColorScheme.tertiaryContainer to dynamicColorScheme.onTertiaryContainer
+            } else {
+                (if (isLight) Color(0xFFE1E1E6) else Color(0xFF4A4A4A)) to (if (isLight) Color.Black else Color.White)
+            }
+        }
+        // Hex letters (A-F)
+        isHexLetter -> {
+            if (customSecondary != null) {
+                customSecondary to customSecondary.contrastTextColor()
+            } else if (dynamicColorScheme != null) {
+                dynamicColorScheme.tertiaryContainer to dynamicColorScheme.primary
+            } else {
+                (if (isLight) Color(0xFFE1E1E6) else Color(0xFF4A4A4A)) to (customPrimary ?: AccentOrange)
+            }
+        }
+        // Number keys (0-9, ., +/-)
+        else -> {
+            if (customNumberKey != null) {
+                customNumberKey to customNumberKey.contrastTextColor()
+            } else if (dynamicColorScheme != null) {
+                val numBg = if (isLight) dynamicColorScheme.surfaceVariant.copy(alpha = 0.55f) else dynamicColorScheme.surfaceVariant.copy(alpha = 0.7f)
+                numBg to dynamicColorScheme.onSurface
+            } else {
+                (if (isLight) Color.White else Color(0xFF333333)) to (if (isLight) Color.Black else Color.White)
+            }
+        }
     }
 
-    val textColor = when {
-        symbol == "AC" || symbol == "⌫" -> Color.Black
-        isOperator -> Color.White
-        symbol in setOf("A", "B", "C", "D", "E", "F") -> Color(0xFFFF9500)
-        else -> if (isLight) Color.Black else Color.White
-    }
+    val finalTextColor = customKeyTextColor ?: defaultTextColor
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1723,7 +2592,7 @@ fun CalculatorButton(
             .clip(shape)
             .background(backgroundColor)
             .then(
-                if (isLight && !isOperator) Modifier.border(1.dp, Color(0x1A000000), shape)
+                if (isLight && !isOperator && !isActive && dynamicColorScheme == null) Modifier.border(1.dp, Color(0x1A000000), shape)
                 else Modifier
             )
             .then(
@@ -1738,8 +2607,8 @@ fun CalculatorButton(
         Text(
             text = symbol,
             fontSize = fontSize,
-            fontWeight = if (symbol in setOf("A", "B", "C", "D", "E", "F")) FontWeight.Bold else FontWeight.Medium,
-            color = textColor,
+            fontWeight = if (isHexLetter) FontWeight.Bold else FontWeight.Medium,
+            color = finalTextColor,
             maxLines = 1
         )
     }

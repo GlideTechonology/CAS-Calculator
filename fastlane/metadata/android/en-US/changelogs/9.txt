@@ -1,0 +1,6 @@
+- Material You dynamic theming with authentic 4-tier Material 3 tonal palette (primary, secondary, tertiary & container tones).
+- Full custom color picker dialog with Hue, Saturation & Brightness sliders, live preview, and HEX code input.
+- Color customization for Primary accent, Secondary function keys, Number keys, Display & Icons, and Keypad text/symbols.
+- Full theme synchronization across all screens and utilities (CAS, Unit Converter, Ruler, Graphing, Daily Tools & Floating Calc).
+- Upgraded Currency Converter with reliable real-time rates (166 currencies), live search, adaptive decimal precision, swap button & offline caching.
+- Multi-language translations for dynamic theming and color personalization.

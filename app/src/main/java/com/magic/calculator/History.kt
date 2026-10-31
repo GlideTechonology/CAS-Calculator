@@ -95,6 +95,7 @@ fun HistoryScreen(
     onClearAll: () -> Unit
 ) {
     val context = LocalContext.current
+    val accentColor = LocalAccentColor.current
     var confirmClear by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp).padding(top = 32.dp)) {
@@ -142,7 +143,7 @@ fun HistoryScreen(
                     item(key = "h_${entry.timestamp}_$header") {
                         Text(
                             header,
-                            color = AccentOrange,
+                            color = accentColor,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(top = 16.dp, bottom = 4.dp, start = 4.dp)

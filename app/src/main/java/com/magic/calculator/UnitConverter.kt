@@ -155,6 +155,7 @@ val unitCategories: List<UnitCategory> = listOf(
 
 @Composable
 fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
+    val accentColor = LocalAccentColor.current
     val context = LocalContext.current
     var categoryIndex by rememberSaveable { mutableIntStateOf(0) }
     var fromIndex by rememberSaveable { mutableIntStateOf(2) }
@@ -199,7 +200,7 @@ fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
                     IconButton(onClick = {
                         input = if (input.startsWith("-")) input.removePrefix("-") else if (input.isNotEmpty()) "-$input" else "-"
                     }) {
-                        Text("±", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = AccentOrange)
+                        Text("±", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = accentColor)
                     }
                 }
             } else null,
@@ -207,10 +208,10 @@ fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = textColor,
                 unfocusedTextColor = textColor,
-                focusedBorderColor = AccentOrange,
+                focusedBorderColor = accentColor,
                 unfocusedBorderColor = textColor.copy(alpha = 0.3f),
-                cursorColor = AccentOrange,
-                focusedLabelColor = AccentOrange,
+                cursorColor = accentColor,
+                focusedLabelColor = accentColor,
                 unfocusedLabelColor = textColor.copy(alpha = 0.6f)
             ),
             modifier = Modifier.fillMaxWidth()
@@ -240,7 +241,7 @@ fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(if (isSource) AccentOrange.copy(alpha = 0.18f) else textColor.copy(alpha = 0.05f))
+                        .background(if (isSource) accentColor.copy(alpha = 0.18f) else textColor.copy(alpha = 0.05f))
                         .clickable {
                             // Tap row → make this unit the source, keep the numerical value
                             if (baseValue != null && !isSource) {
@@ -266,7 +267,7 @@ fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(unit.symbol, color = if (isSource) AccentOrange else textColor.copy(alpha = 0.5f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(unit.symbol, color = if (isSource) accentColor else textColor.copy(alpha = 0.5f), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -275,6 +276,7 @@ fun UnitConverterScreen(textColor: Color, onBack: () -> Unit) {
 
 @Composable
 private fun ChipRow(labels: List<String>, selected: Int, textColor: Color, onSelect: (Int) -> Unit) {
+    val accentColor = LocalAccentColor.current
     Row(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -286,8 +288,8 @@ private fun ChipRow(labels: List<String>, selected: Int, textColor: Color, onSel
                 label = { Text(label) },
                 colors = FilterChipDefaults.filterChipColors(
                     labelColor = textColor,
-                    selectedContainerColor = AccentOrange,
-                    selectedLabelColor = Color.White
+                    selectedContainerColor = accentColor,
+                    selectedLabelColor = accentColor.contrastTextColor()
                 )
             )
         }

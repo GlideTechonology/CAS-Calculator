@@ -5,11 +5,13 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -90,7 +92,8 @@ fun DailyToolsScreen(textColor: Color, initialToolName: String? = null, onBack: 
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(t.icon, contentDescription = null, tint = AccentOrange, modifier = Modifier.size(48.dp))
+                                val accentColor = LocalAccentColor.current
+                                Icon(t.icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(48.dp))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(t.name, color = textColor, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                             }
@@ -121,6 +124,7 @@ data class DailyTool(val name: String, val icon: ImageVector)
 
 @Composable
 fun DiscountTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var price by remember { mutableStateOf("") }
     var discount by remember { mutableStateOf("") }
     
@@ -150,13 +154,14 @@ fun DiscountTool(textColor: Color) {
         val saved = p * (d / 100)
         val finalPrice = p - saved
         
-        Text("${Translator.tr("Discount Miktarı:")} ${String.format(Locale.US, "%.2f", saved)}", color = AccentOrange, fontSize = 20.sp)
+        Text("${Translator.tr("Discount Miktarı:")} ${String.format(Locale.US, "%.2f", saved)}", color = accentColor, fontSize = 20.sp)
         Text("${Translator.tr("Final Price:")} ${String.format(Locale.US, "%.2f", finalPrice)}", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
 fun VatTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var price by remember { mutableStateOf("") }
     var vat by remember { mutableStateOf("20") }
     var isVatIncluded by remember { mutableStateOf(false) }
@@ -195,7 +200,7 @@ fun VatTool(textColor: Color) {
         val finalPrice = if (isVatIncluded) p else p + vatAmount
         val basePrice = if (isVatIncluded) p - vatAmount else p
         
-        Text("${Translator.tr("Tax Amount:")} ${String.format(Locale.US, "%.2f", vatAmount)}", color = AccentOrange, fontSize = 20.sp)
+        Text("${Translator.tr("Tax Amount:")} ${String.format(Locale.US, "%.2f", vatAmount)}", color = accentColor, fontSize = 20.sp)
         Text("${Translator.tr("Price without Tax:")} ${String.format(Locale.US, "%.2f", basePrice)}", color = textColor, fontSize = 18.sp)
         Text("${Translator.tr("Total Price:")} ${String.format(Locale.US, "%.2f", finalPrice)}", color = textColor, fontSize = 28.sp, fontWeight = FontWeight.Bold)
     }
@@ -203,6 +208,7 @@ fun VatTool(textColor: Color) {
 
 @Composable
 fun TipTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var bill by remember { mutableStateOf("") }
     var tipPercent by remember { mutableStateOf("10") }
     var people by remember { mutableStateOf("1") }
@@ -253,7 +259,7 @@ fun TipTool(textColor: Color) {
         val tipAmount = b * (t / 100)
         val total = b + tipAmount
         
-        Text("${Translator.tr("Toplam Tip & Split:")} ${String.format(Locale.US, "%.2f", tipAmount)}", color = AccentOrange, fontSize = 20.sp)
+        Text("${Translator.tr("Toplam Tip & Split:")} ${String.format(Locale.US, "%.2f", tipAmount)}", color = accentColor, fontSize = 20.sp)
         Text("${Translator.tr("Total Bill:")} ${String.format(Locale.US, "%.2f", total)}", color = textColor, fontSize = 20.sp)
         
         if (isZeroOrNegative) {
@@ -274,6 +280,7 @@ fun TipTool(textColor: Color) {
 
 @Composable
 fun BmiTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     
@@ -309,45 +316,165 @@ fun BmiTool(textColor: Color) {
                 bmi < 30 -> "Overweight"
                 else -> "Obese"
             }
-            Text("${Translator.tr("Body Mass Index:")} ${String.format(Locale.US, "%.1f", bmi)}", color = AccentOrange, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("${Translator.tr("Body Mass Index:")} ${String.format(Locale.US, "%.1f", bmi)}", color = accentColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text("${Translator.tr("Status:")} $status", color = textColor, fontSize = 20.sp)
         }
     }
 }
 
+val CurrencyMeta = mapOf(
+    "USD" to ("$" to "US Dollar"),
+    "EUR" to ("€" to "Euro"),
+    "TRY" to ("₺" to "Türk Lirası"),
+    "GBP" to ("£" to "British Pound"),
+    "JPY" to ("¥" to "Japanese Yen"),
+    "CAD" to ("C$" to "Canadian Dollar"),
+    "AUD" to ("A$" to "Australian Dollar"),
+    "CHF" to ("CHF" to "Swiss Franc"),
+    "CNY" to ("¥" to "Chinese Yuan"),
+    "RUB" to ("₽" to "Russian Ruble"),
+    "AZN" to ("₼" to "Azerbaijani Manat"),
+    "KZT" to ("₸" to "Kazakhstani Tenge"),
+    "SAR" to ("﷼" to "Saudi Riyal"),
+    "AED" to ("د.إ" to "UAE Dirham"),
+    "QAR" to ("﷼" to "Qatari Riyal"),
+    "KWD" to ("د.ك" to "Kuwaiti Dinar"),
+    "INR" to ("₹" to "Indian Rupee"),
+    "BRL" to ("R$" to "Brazilian Real"),
+    "KRW" to ("₩" to "South Korean Won"),
+    "MXN" to ("$" to "Mexican Peso"),
+    "SEK" to ("kr" to "Swedish Krona"),
+    "NOK" to ("kr" to "Norwegian Krone"),
+    "PLN" to ("zł" to "Polish Zloty"),
+    "DKK" to ("kr" to "Danish Krone"),
+    "SGD" to ("S$" to "Singapore Dollar"),
+    "NZD" to ("NZ$" to "New Zealand Dollar"),
+    "HKD" to ("HK$" to "Hong Kong Dollar"),
+    "ZAR" to ("R" to "South African Rand"),
+    "IDR" to ("Rp" to "Indonesian Rupiah"),
+    "UAH" to ("₴" to "Ukrainian Hryvnia"),
+    "EGP" to ("E£" to "Egyptian Pound"),
+    "THB" to ("฿" to "Thai Baht"),
+    "ILS" to ("₪" to "Israeli Shekel"),
+    "CZK" to ("Kč" to "Czech Koruna"),
+    "HUF" to ("Ft" to "Hungarian Forint"),
+    "PHP" to ("₱" to "Philippine Peso")
+)
+
+val PopularCurrencies = listOf(
+    "USD", "EUR", "TRY", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY", "RUB",
+    "AZN", "KZT", "SAR", "AED", "QAR", "KWD", "INR", "BRL", "KRW", "MXN",
+    "SEK", "NOK", "PLN", "DKK", "SGD", "NZD", "HKD", "ZAR", "IDR", "UAH",
+    "EGP", "THB", "ILS", "CZK", "HUF", "PHP"
+)
+
 @Composable
 fun CurrencyTool(textColor: Color) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val accentColor = LocalAccentColor.current
     var amount by remember { mutableStateOf("1") }
     var baseCurrency by remember { mutableStateOf("USD") }
     var targetCurrency by remember { mutableStateOf("TRY") }
     var resultText by remember { mutableStateOf(Translator.tr("Calculating...")) }
+    var rateSubText by remember { mutableStateOf("") }
     var rates by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
-    
-    val currencies = listOf("USD", "EUR", "TRY", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "RUB")
-    
+    var isLiveRates by remember { mutableStateOf(false) }
+    var lastUpdateText by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val allCurrencies = remember(rates) {
+        if (rates.isEmpty()) PopularCurrencies
+        else {
+            val fromApi = rates.keys.filter { it.length == 3 }.sorted()
+            (listOf("USD", "EUR", "TRY", "GBP") + fromApi).distinct()
+        }
+    }
+
+    val displayCurrencies = remember(searchQuery, allCurrencies) {
+        val q = searchQuery.trim().uppercase(Locale.US)
+        if (q.isBlank()) PopularCurrencies
+        else allCurrencies.filter { code ->
+            code.contains(q) || CurrencyMeta[code]?.second?.uppercase(Locale.US)?.contains(q) == true
+        }
+    }
+
     LaunchedEffect(Unit) {
+        val cached = context.getSharedPreferences("currency_cache", android.content.Context.MODE_PRIVATE)
+        val cachedRatesStr = cached.getString("rates_json", null)
+        val cachedDate = cached.getString("rates_date", "")
+        if (!cachedDate.isNullOrEmpty()) {
+            lastUpdateText = cachedDate
+        }
+        if (cachedRatesStr != null) {
+            try {
+                val json = org.json.JSONObject(cachedRatesStr)
+                val m = mutableMapOf<String, Double>()
+                for (k in json.keys()) m[k] = json.getDouble(k)
+                if (m.isNotEmpty()) rates = m
+            } catch (_: Exception) {}
+        }
+        
         try {
-            val jsonStr = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                java.net.URL("https://api.frankfurter.app/latest?from=USD").readText()
+            val (jsonStr, apiDate) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val conn = java.net.URL("https://open.er-api.com/v6/latest/USD").openConnection() as java.net.HttpURLConnection
+                    conn.connectTimeout = 8000
+                    conn.readTimeout = 12000
+                    val res = conn.inputStream.bufferedReader().readText()
+                    val j = org.json.JSONObject(res)
+                    val d = j.optString("time_last_update_utc", "")
+                    res to d
+                } catch (_: Exception) {
+                    val conn = java.net.URL("https://api.frankfurter.dev/v1/latest?from=USD").openConnection() as java.net.HttpURLConnection
+                    conn.connectTimeout = 8000
+                    conn.readTimeout = 12000
+                    val res = conn.inputStream.bufferedReader().readText()
+                    val j = org.json.JSONObject(res)
+                    val d = j.optString("date", "")
+                    res to d
+                }
             }
             val json = org.json.JSONObject(jsonStr)
-            val ratesJson = json.getJSONObject("rates")
-            val newRates = mutableMapOf<String, Double>()
-            newRates["USD"] = 1.0 // Base
-            for (key in ratesJson.keys()) {
-                newRates[key] = ratesJson.getDouble(key)
+            val ratesObj = if (json.has("rates")) json.getJSONObject("rates") else null
+            if (ratesObj != null) {
+                val newRates = mutableMapOf<String, Double>()
+                newRates["USD"] = 1.0
+                for (key in ratesObj.keys()) {
+                    newRates[key] = ratesObj.getDouble(key)
+                }
+                rates = newRates
+                isLiveRates = true
+                val cleanDate = if (apiDate.length > 16) apiDate.substring(0, 16) else apiDate
+                lastUpdateText = cleanDate
+                cached.edit()
+                    .putString("rates_json", org.json.JSONObject(newRates as Map<*, *>).toString())
+                    .putString("rates_date", cleanDate)
+                    .apply()
             }
-            rates = newRates
         } catch (e: Exception) {
-            resultText = Translator.tr("No internet connection or API error.")
+            if (rates.isEmpty()) {
+                rates = mapOf(
+                    "USD" to 1.0, "EUR" to 0.895, "TRY" to 49.95, "GBP" to 0.747,
+                    "JPY" to 157.49, "AUD" to 1.42, "CAD" to 1.396, "CHF" to 0.824,
+                    "CNY" to 6.67, "RUB" to 80.4, "INR" to 95.07, "BRL" to 5.4,
+                    "KRW" to 1335.0, "MXN" to 18.9, "SAR" to 3.75, "AED" to 3.67,
+                    "SEK" to 9.83, "NOK" to 9.23, "PLN" to 3.94, "DKK" to 6.69,
+                    "SGD" to 1.28, "NZD" to 1.77, "HKD" to 7.85, "ZAR" to 16.69,
+                    "IDR" to 18148.0, "AZN" to 1.70, "KZT" to 498.0, "UAH" to 41.5,
+                    "EGP" to 49.2, "QAR" to 3.64, "KWD" to 0.31, "THB" to 34.2,
+                    "ILS" to 3.62, "CZK" to 23.4, "HUF" to 365.0, "PHP" to 58.6
+                )
+            }
         }
     }
     
     LaunchedEffect(amount, baseCurrency, targetCurrency, rates) {
         if (rates.isEmpty()) return@LaunchedEffect
-        val a = amount.toDoubleOrNull()
-        if (a == null) {
+        val cleanAmount = amount.replace(',', '.').trim()
+        val a = cleanAmount.toDoubleOrNull()
+        if (a == null || a < 0) {
             resultText = Translator.tr("Enter a valid amount")
+            rateSubText = ""
             return@LaunchedEffect
         }
         
@@ -356,59 +483,240 @@ fun CurrencyTool(textColor: Color) {
         
         val amountInUsd = a / baseRate
         val converted = amountInUsd * targetRate
+        val unitRate = targetRate / baseRate
+
+        val targetSymbol = CurrencyMeta[targetCurrency]?.first?.let { "$it " } ?: ""
+        val formattedConverted = when {
+            converted == 0.0 -> "0.00"
+            converted < 0.000001 -> String.format(java.util.Locale.US, "%.8f", converted)
+            converted < 0.0001 -> String.format(java.util.Locale.US, "%.6f", converted)
+            converted < 0.01 -> String.format(java.util.Locale.US, "%.4f", converted)
+            else -> String.format(java.util.Locale.US, "%,.2f", converted)
+        }
         
-        resultText = "${String.format(java.util.Locale.US, "%.2f", converted)} $targetCurrency"
+        resultText = "$targetSymbol$formattedConverted $targetCurrency"
+
+        val formattedUnit = when {
+            unitRate < 0.0001 -> String.format(java.util.Locale.US, "%.6f", unitRate)
+            unitRate < 0.01 -> String.format(java.util.Locale.US, "%.4f", unitRate)
+            else -> String.format(java.util.Locale.US, "%.4f", unitRate)
+        }
+        rateSubText = "1 $baseCurrency = $formattedUnit $targetCurrency"
     }
 
-    Column {
+    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
         OutlinedTextField(
             value = amount,
-            onValueChange = { amount = it },
+            onValueChange = { new ->
+                amount = new.filterIndexed { idx, c ->
+                    c.isDigit() || c == '.' || c == ','
+                }
+            },
             label = { Text(Translator.tr("Amount")) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = textColor, unfocusedTextColor = textColor)
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accentColor,
+                focusedLabelColor = accentColor,
+                cursorColor = accentColor,
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor
+            )
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Status Row (Live vs Cache indicator & Date)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(if (isLiveRates || rates.size > 30) Color(0xFF4CAF50) else Color(0xFFFF9800))
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (isLiveRates || rates.size > 30) Translator.tr("Live Rates (Updated)") else Translator.tr("Cached Rates"),
+                    fontSize = 12.sp,
+                    color = textColor.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            if (lastUpdateText.isNotEmpty()) {
+                Text(
+                    text = lastUpdateText,
+                    fontSize = 11.sp,
+                    color = textColor.copy(alpha = 0.5f)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(10.dp))
+        
+        // From / Swap / To Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(textColor.copy(alpha = 0.05f))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(Translator.tr("From"), fontSize = 11.sp, color = textColor.copy(alpha = 0.5f))
+                Text(
+                    text = "$baseCurrency ${CurrencyMeta[baseCurrency]?.first ?: ""}",
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor,
+                    fontSize = 16.sp
+                )
+            }
+            IconButton(
+                onClick = {
+                    val tmp = baseCurrency
+                    baseCurrency = targetCurrency
+                    targetCurrency = tmp
+                }
+            ) {
+                Icon(
+                    Icons.Filled.SwapHoriz,
+                    contentDescription = "Swap",
+                    tint = accentColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(Translator.tr("To"), fontSize = 11.sp, color = textColor.copy(alpha = 0.5f))
+                Text(
+                    text = "$targetCurrency ${CurrencyMeta[targetCurrency]?.first ?: ""}",
+                    fontWeight = FontWeight.Bold,
+                    color = accentColor,
+                    fontSize = 16.sp
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(10.dp))
+        
+        // Search filter input for 166 currencies
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            placeholder = { Text(Translator.tr("Search currency..."), fontSize = 13.sp, color = textColor.copy(alpha = 0.4f)) },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = textColor.copy(alpha = 0.5f), modifier = Modifier.size(18.dp)) },
+            trailingIcon = if (searchQuery.isNotEmpty()) {
+                {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Clear", tint = textColor.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    }
+                }
+            } else null,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = textColor,
+                unfocusedTextColor = textColor,
+                focusedBorderColor = accentColor,
+                unfocusedBorderColor = textColor.copy(alpha = 0.2f)
+            )
+        )
+        
+        Spacer(modifier = Modifier.height(10.dp))
+        
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(Translator.tr("From"), color = textColor.copy(alpha = 0.7f))
+                Text("${Translator.tr("From")} (${displayCurrencies.size})", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
-                LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.height(200.dp)) {
-                    items(currencies) { curr ->
+                LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.height(190.dp)) {
+                    items(displayCurrencies) { curr ->
+                        val isSel = curr == baseCurrency
+                        val sym = CurrencyMeta[curr]?.first ?: ""
                         Button(
                             onClick = { baseCurrency = curr },
-                            colors = ButtonDefaults.buttonColors(containerColor = if (curr == baseCurrency) AccentOrange else textColor.copy(alpha = 0.1f)),
-                            contentPadding = PaddingValues(0.dp)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isSel) accentColor else textColor.copy(alpha = 0.08f)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(2.dp).fillMaxWidth().height(36.dp)
                         ) {
-                            Text(curr, fontSize = 12.sp, color = if (curr == baseCurrency) Color.White else textColor)
+                            Text(
+                                text = if (sym.isNotEmpty()) "$curr $sym" else curr,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSel) accentColor.contrastTextColor() else textColor,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(Translator.tr("To"), color = textColor.copy(alpha = 0.7f))
+                Text("${Translator.tr("To")} (${displayCurrencies.size})", color = textColor.copy(alpha = 0.7f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
-                LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.height(200.dp)) {
-                    items(currencies) { curr ->
+                LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.height(190.dp)) {
+                    items(displayCurrencies) { curr ->
+                        val isSel = curr == targetCurrency
+                        val sym = CurrencyMeta[curr]?.first ?: ""
                         Button(
                             onClick = { targetCurrency = curr },
-                            colors = ButtonDefaults.buttonColors(containerColor = if (curr == targetCurrency) AccentOrange else textColor.copy(alpha = 0.1f)),
-                            contentPadding = PaddingValues(0.dp)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isSel) accentColor else textColor.copy(alpha = 0.08f)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(2.dp).fillMaxWidth().height(36.dp)
                         ) {
-                            Text(curr, fontSize = 12.sp, color = if (curr == targetCurrency) Color.White else textColor)
+                            Text(
+                                text = if (sym.isNotEmpty()) "$curr $sym" else curr,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSel) accentColor.contrastTextColor() else textColor,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
             }
         }
+        
+        Spacer(modifier = Modifier.height(18.dp))
+        
+        // Result display Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = textColor.copy(alpha = 0.05f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = resultText,
+                    color = textColor,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (rateSubText.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = rateSubText,
+                        color = accentColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(24.dp))
-        Text(resultText, color = textColor, fontSize = 32.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
     }
 }
 
 @Composable
 fun LoanTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var principal by remember { mutableStateOf("") }
     var interestRate by remember { mutableStateOf("") }
     var months by remember { mutableStateOf("") }
@@ -449,7 +757,7 @@ fun LoanTool(textColor: Color) {
             val totalPayment = emi * n
             val totalInterest = totalPayment - p
             
-            Text("${Translator.tr("Monthly Payment:")} ${String.format(java.util.Locale.US, "%.2f", emi)}", color = AccentOrange, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("${Translator.tr("Monthly Payment:")} ${String.format(java.util.Locale.US, "%.2f", emi)}", color = accentColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text("${Translator.tr("Total Interest:")} ${String.format(java.util.Locale.US, "%.2f", totalInterest)}", color = textColor, fontSize = 20.sp)
             Text("${Translator.tr("Total Payment:")} ${String.format(java.util.Locale.US, "%.2f", totalPayment)}", color = textColor, fontSize = 20.sp)
         }
@@ -458,6 +766,7 @@ fun LoanTool(textColor: Color) {
 
 @Composable
 fun GpaTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var score by remember { mutableStateOf("") }
     
     Column {
@@ -481,13 +790,14 @@ fun GpaTool(textColor: Color) {
                 s >= 50 -> "FD (0.5)"
                 else -> "FF (0.0)"
             }
-            Text("${Translator.tr("Letter Grade:")} $gpa", color = AccentOrange, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text("${Translator.tr("Letter Grade:")} $gpa", color = accentColor, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
 fun AreaTool(textColor: Color) {
+    val accentColor = LocalAccentColor.current
     var selectedShape by remember { mutableStateOf("Square") }
     val shapes = listOf("Square", "Rectangle", "Circle", "Triangle")
     
@@ -503,10 +813,10 @@ fun AreaTool(textColor: Color) {
                         val1 = ""
                         val2 = ""
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = if (shape == selectedShape) AccentOrange else textColor.copy(alpha = 0.1f)),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (shape == selectedShape) accentColor else textColor.copy(alpha = 0.1f)),
                     modifier = Modifier.padding(4.dp)
                 ) {
-                    Text(Translator.tr(shape), color = if (shape == selectedShape) Color.White else textColor)
+                    Text(Translator.tr(shape), color = if (shape == selectedShape) accentColor.contrastTextColor() else textColor)
                 }
             }
         }
@@ -579,7 +889,7 @@ fun AreaTool(textColor: Color) {
                 "Triangle" -> { area = (v1 * v2) / 2; showPerimeter = false }
             }
             
-            Text("${Translator.tr("Area:")} ${String.format(java.util.Locale.US, "%.2f", area)}", color = AccentOrange, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text("${Translator.tr("Area:")} ${String.format(java.util.Locale.US, "%.2f", area)}", color = accentColor, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             if (showPerimeter) {
                 Text("${Translator.tr("Perimeter:")} ${String.format(java.util.Locale.US, "%.2f", perimeter)}", color = textColor, fontSize = 20.sp)
             }
@@ -741,6 +1051,7 @@ fun DateCalculatorUI(textColor: Color) {
 @Composable
 fun CustomEquationsTool(textColor: Color) {
     val context = LocalContext.current
+    val accentColor = LocalAccentColor.current
     val prefs = context.getSharedPreferences("custom_equations", Context.MODE_PRIVATE)
     
     var savedStr by remember { mutableStateOf(prefs.getString("eqs", "") ?: "") }
@@ -787,10 +1098,10 @@ fun CustomEquationsTool(textColor: Color) {
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState())) {
         Button(
             onClick = { showAddDialog = true }, 
-            colors = ButtonDefaults.buttonColors(containerColor = AccentOrange),
+            colors = ButtonDefaults.buttonColors(containerColor = accentColor),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(Translator.tr("+ Yeni Denklem Ekle"), color = Color.White)
+            Text(Translator.tr("+ Yeni Denklem Ekle"), color = accentColor.contrastTextColor())
         }
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -809,9 +1120,9 @@ fun CustomEquationsTool(textColor: Color) {
             exit = shrinkVertically() + fadeOut()
         ) {
             var pipelineInitial by remember { mutableStateOf("") }
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = AccentOrange.copy(alpha = 0.1f))) {
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.1f))) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(Translator.tr("Pipeline (Zincirleme Çözüm)"), fontWeight = FontWeight.Bold, color = AccentOrange, fontSize = 18.sp)
+                    Text(Translator.tr("Pipeline (Zincirleme Çözüm)"), fontWeight = FontWeight.Bold, color = accentColor, fontSize = 18.sp)
                     Text(Translator.tr("Aşağıdaki tüm denklemleri sırasıyla birbirine bağlar. (Çıktı -> Girdi)"), fontSize = 12.sp, color = textColor.copy(alpha = 0.7f))
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
@@ -875,7 +1186,7 @@ fun CustomEquationsTool(textColor: Color) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(eq.first, fontWeight = FontWeight.Bold, color = textColor, fontSize = 18.sp)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(Translator.tr("Zincirde"), fontSize = 12.sp, color = if (eq.third) AccentOrange else textColor.copy(alpha = 0.5f))
+                            Text(Translator.tr("Zincirde"), fontSize = 12.sp, color = if (eq.third) accentColor else textColor.copy(alpha = 0.5f))
                             Switch(
                                 checked = eq.third,
                                 onCheckedChange = { isChecked ->
@@ -898,7 +1209,7 @@ fun CustomEquationsTool(textColor: Color) {
                         }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("f(x) = ${eq.second}", fontSize = 14.sp, color = AccentOrange)
+                    Text("f(x) = ${eq.second}", fontSize = 14.sp, color = accentColor)
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
                         value = xVal, 

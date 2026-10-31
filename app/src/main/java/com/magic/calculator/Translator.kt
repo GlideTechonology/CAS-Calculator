@@ -1583,6 +1583,160 @@ object Translator {
             "中文" to "纯黑 (AMOLED)",
             "日本語" to "ピュアブラック"
         ),
+        "Material You (Dynamic)" to mapOf(
+            "Türkçe" to "Material You (Dinamik Renkler)",
+            "English" to "Material You (Dynamic Colors)",
+            "Español" to "Material You (Colores Dinámicos)",
+            "Deutsch" to "Material You (Dynamische Farben)",
+            "Français" to "Material You (Couleurs dynamiques)",
+            "Русский" to "Material You (Динамические цвета)",
+            "العربية" to "Material You (ألوان ديناميكية)",
+            "中文" to "Material You (动态色彩)",
+            "日本語" to "Material You (ダイナミックカラー)"
+        ),
+        "Custom Colors" to mapOf(
+            "Türkçe" to "Renk Özelleştirme",
+            "English" to "Custom Colors",
+            "Español" to "Colores Personalizados",
+            "Deutsch" to "Benutzerdefinierte Farben",
+            "Français" to "Couleurs personnalisées",
+            "Русский" to "Пользовательские цвета",
+            "العربية" to "ألوان مخصصة",
+            "中文" to "自定义颜色",
+            "日本語" to "カスタムカラー"
+        ),
+        "Primary Accent Color" to mapOf(
+            "Türkçe" to "Ana Renk (Operatörler & Vurgu)",
+            "English" to "Primary Accent Color",
+            "Español" to "Color de Acento Principal",
+            "Deutsch" to "Hauptakzentfarbe",
+            "Français" to "Couleur d'accent principale",
+            "Русский" to "Основной акцентный цвет",
+            "العربية" to "لون التمييز الأساسي",
+            "中文" to "主要强调色",
+            "日本語" to "プライマリアクセントカラー"
+        ),
+        "Secondary Function Keys" to mapOf(
+            "Türkçe" to "İkinci Renk (Fonksiyon Tuşları)",
+            "English" to "Secondary Function Keys",
+            "Español" to "Teclas de Función Secundarias",
+            "Deutsch" to "Sekundäre Funktionstasten",
+            "Français" to "Touches de fonction secondaires",
+            "Русский" to "Вторичные функциональные клавиши",
+            "العربية" to "مفاتيح الوظائف الثانوية",
+            "中文" to "次要功能键",
+            "日本語" to "セカンダリファンクションキー"
+        ),
+        "Number Keys Color" to mapOf(
+            "Türkçe" to "Sayı Tuşları Rengi",
+            "English" to "Number Keys Color",
+            "Español" to "Color de Teclas Numéricas",
+            "Deutsch" to "Zifferntastenfarbe",
+            "Français" to "Couleur des touches numériques",
+            "Русский" to "Цвет цифровых клавиш",
+            "العربية" to "لون مفاتيح الأرقام",
+            "中文" to "数字键颜色",
+            "日本語" to "テンキーの色"
+        ),
+        "Display & Icons Color" to mapOf(
+            "Türkçe" to "Ekran & İkonlar Rengi",
+            "English" to "Display & Icons Color",
+            "Español" to "Color de Pantalla e Íconos",
+            "Deutsch" to "Display- & Symbolfarbe",
+            "Français" to "Couleur d'écran et icônes",
+            "Русский" to "Цвет экрана и значков",
+            "العربية" to "لون الشاشة والأيقونات",
+            "中文" to "屏幕与图标颜色",
+            "日本語" to "画面とアイコンの色"
+        ),
+        "Keypad Text & Symbols" to mapOf(
+            "Türkçe" to "Tuş Yazıları & Semboller",
+            "English" to "Keypad Text & Symbols",
+            "Español" to "Texto y Símbolos del Teclado",
+            "Deutsch" to "Tastaturtext & Symbole",
+            "Français" to "Texte et symboles du clavier",
+            "Русский" to "Текст и символы клавиш",
+            "العربية" to "نصوص ورموز المفاتيح",
+            "中文" to "按键文字与符号",
+            "日本語" to "キーの文字と記号"
+        ),
+        "Reset Colors to Default" to mapOf(
+            "Türkçe" to "Varsayılan Renklere Dön",
+            "English" to "Reset Colors to Default",
+            "Español" to "Restablecer Colores por Defecto",
+            "Deutsch" to "Farben zurücksetzen",
+            "Français" to "Réinitialiser les couleurs",
+            "Русский" to "Сбросить цвета по умолчанию",
+            "العربية" to "إعادة ضبط الألوان الافتراضية",
+            "中文" to "恢复默认颜色",
+            "日本語" to "デフォルトの色に戻す"
+        ),
+        "Pick Any Color" to mapOf(
+            "Türkçe" to "Dilediğin Rengi Seç",
+            "English" to "Pick Any Color",
+            "Español" to "Elegir Cualquier Color",
+            "Deutsch" to "Beliebige Farbe wählen",
+            "Français" to "Choisir n'importe quelle couleur",
+            "Русский" to "Выбрать любой цвет",
+            "العربية" to "اختر أي لون",
+            "中文" to "选取任意颜色",
+            "日本語" to "好きな色を選択"
+        ),
+        "HEX Color Code" to mapOf(
+            "Türkçe" to "HEX Renk Kodu",
+            "English" to "HEX Color Code",
+            "Español" to "Código de Color HEX",
+            "Deutsch" to "HEX-Farbcode",
+            "Français" to "Code couleur HEX",
+            "Русский" to "HEX-код цвета",
+            "العربية" to "رمز لون HEX",
+            "中文" to "HEX 颜色代码",
+            "日本語" to "HEXカラーコード"
+        ),
+        "Hue" to mapOf(
+            "Türkçe" to "Renk Tonu (Hue)",
+            "English" to "Hue (Color Tone)",
+            "Español" to "Tono (Hue)",
+            "Deutsch" to "Farbton (Hue)",
+            "Français" to "Teinte (Hue)",
+            "Русский" to "Оттенок (Hue)",
+            "العربية" to "تدرج اللون",
+            "中文" to "色调 (Hue)",
+            "日本語" to "色相 (Hue)"
+        ),
+        "Saturation" to mapOf(
+            "Türkçe" to "Doygunluk",
+            "English" to "Saturation",
+            "Español" to "Saturación",
+            "Deutsch" to "Sättigung",
+            "Français" to "Saturation",
+            "Русский" to "Насыщенность",
+            "العربية" to "التشبع",
+            "中文" to "饱和度",
+            "日本語" to "彩度"
+        ),
+        "Brightness" to mapOf(
+            "Türkçe" to "Parlaklık",
+            "English" to "Brightness",
+            "Español" to "Brillo",
+            "Deutsch" to "Helligkeit",
+            "Français" to "Luminosité",
+            "Русский" to "Яркость",
+            "العربية" to "السطوع",
+            "中文" to "亮度",
+            "日本語" to "明度"
+        ),
+        "Quick Swatches" to mapOf(
+            "Türkçe" to "Hızlı Renk Paleti",
+            "English" to "Quick Swatches",
+            "Español" to "Muestras Rápidas",
+            "Deutsch" to "Schnellfarben",
+            "Français" to "Palette rapide",
+            "Русский" to "Быстрая палитра",
+            "العربية" to "ألوان سريعة",
+            "中文" to "快捷调色板",
+            "日本語" to "クイックパレット"
+        ),
         "Immersive (Hidden)" to mapOf(
             "Türkçe" to "Gizle (Tam Ekran)",
             "English" to "Immersive (Hidden)",
@@ -1982,6 +2136,39 @@ object Translator {
             "العربية" to "المبلغ",
             "中文" to "金额",
             "日本語" to "金額"
+        ),
+        "Live Rates (Updated)" to mapOf(
+            "English" to "Live Rates (Updated)",
+            "Türkçe" to "Canlı Kurlar (Güncel)",
+            "Español" to "Tasas en vivo (Actualizado)",
+            "Deutsch" to "Live-Kurse (Aktualisiert)",
+            "Français" to "Taux en direct (Mis à jour)",
+            "Русский" to "Актуальные курсы (Обновлено)",
+            "العربية" to "أسعار حية (محدثة)",
+            "中文" to "实时汇率 (已更新)",
+            "日本語" to "ライブレート (更新済み)"
+        ),
+        "Cached Rates" to mapOf(
+            "English" to "Cached Rates",
+            "Türkçe" to "Önbellek Kurları",
+            "Español" to "Tasas en caché",
+            "Deutsch" to "Zwischengespeicherte Kurse",
+            "Français" to "Taux en cache",
+            "Русский" to "Кэшированные курсы",
+            "العربية" to "أسعار مخزنة مؤقتاً",
+            "中文" to "缓存汇率",
+            "日本語" to "キャッシュレート"
+        ),
+        "Search currency..." to mapOf(
+            "English" to "Search currency...",
+            "Türkçe" to "Para birimi ara...",
+            "Español" to "Buscar moneda...",
+            "Deutsch" to "Währung suchen...",
+            "Français" to "Rechercher une devise...",
+            "Русский" to "Поиск валюты...",
+            "العربية" to "البحث عن العملة...",
+            "中文" to "搜索货币...",
+            "日本語" to "通貨を検索..."
         ),
         "Shapes & Area" to mapOf(
             "English" to "Shapes & Area",
